@@ -38,11 +38,30 @@ Dự án được xây dựng theo kiến trúc **Monolithic 3-Tier (3 lớp)**,
 
 ```mermaid
 flowchart LR
-    FE[Frontend\nReact + TypeScript]
-    BE[Backend\nSpring Boot REST API]
-    DB[(PostgreSQL)]
+    subgraph "User Devices"
+        Browser[Web Browser]
+    end
 
-    FE --> BE --> DB
+    subgraph "Application Server"
+        FE[Frontend Container]
+        BE[Backend Container]
+    end
+
+    subgraph "Data Layer"
+        DB[PostgreSQL 16]
+    end
+
+    Browser -->|"HTTPS / WebSocket (optional)"| FE
+    FE -->|"REST API + JWT"| BE
+    BE -->|"JDBC + Pessimistic Locking"| DB
+
+    classDef frontend fill:#10b981,stroke:#fff,color:#fff
+    classDef backend fill:#3b82f6,stroke:#fff,color:#fff
+    classDef db fill:#8b5cf6,stroke:#fff,color:#fff
+
+    class FE frontend
+    class BE backend
+    class DB db
 ```
 
 ### 2. Công nghệ sử dụng
@@ -61,3 +80,149 @@ flowchart LR
 
 **Database: Lưu trữ dữ liệu**
 * **Hệ quản trị CSDL:** **PostgreSQL**. Lựa chọn tối ưu nhất cho hệ thống kho hàng nhờ khả năng xử lý **ACID Transactions** cực kỳ khắt khe và hỗ trợ tốt các truy vấn phức tạp cho báo cáo Nhập-Xuất-Tồn.
+
+## Thiết kế cơ sở dữ liệu
+
+```mermaid
+erDiagram
+    roles {
+        bigint id PK
+        varchar name UK
+        text description
+        timestamptz created_at
+    }
+
+    users {
+        bigint id PK
+        varchar username UK
+        varchar password_hash
+        varchar full_name
+        varchar email UK
+        bigint role_id FK
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    categories {
+        bigint id PK
+        varchar name_vn
+        varchar name_en
+        text description
+        timestamptz created_at
+    }
+
+    products {
+        bigint id PK
+        varchar product_code UK
+        varchar name_vn
+        varchar name_en
+        bigint category_id FK
+        bigint base_price_vnd
+        numeric vat_rate
+        text description
+        boolean is_active
+        bigint created_by FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    product_variants {
+        bigint id PK
+        bigint product_id FK
+        varchar sku UK
+        varchar size
+        varchar color
+        varchar design_style
+        bigint variant_price_vnd
+        varchar barcode
+        integer low_stock_threshold
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    inventory {
+        bigint id PK
+        bigint variant_id FK, UK
+        integer current_quantity
+        bigint total_value_vnd
+        integer version
+        timestamptz updated_at
+    }
+
+    stock_imports {
+        bigint id PK
+        varchar import_number UK
+        varchar supplier_name
+        bigint user_id FK
+        timestamptz import_date
+        text notes
+        timestamptz created_at
+    }
+
+    stock_import_items {
+        bigint id PK
+        bigint import_id FK
+        bigint variant_id FK
+        integer quantity
+        bigint unit_cost_vnd
+        bigint line_total_vnd
+    }
+
+    sales {
+        bigint id PK
+        varchar sale_number UK
+        timestamptz sale_at
+        bigint cashier_id FK
+        bigint subtotal_vnd
+        bigint discount_vnd
+        bigint total_vnd
+        boolean e_invoice_exported
+        text notes
+        timestamptz created_at
+    }
+
+    sale_items {
+        bigint id PK
+        bigint sale_id FK
+        bigint variant_id FK
+        integer quantity
+        bigint unit_price_vnd
+        numeric vat_rate
+        bigint vat_amount_vnd
+        bigint line_total_vnd
+    }
+
+    inventory_transactions {
+        bigint id PK
+        bigint variant_id FK
+        bigint user_id FK
+        movement_type movement_type
+        adjustment_type adjustment_subtype
+        integer quantity_change
+        bigint unit_price_vnd
+        text reason
+        bigint import_id FK
+        bigint sale_id FK
+        varchar idempotency_key UK
+        timestamptz performed_at
+    }
+
+    %% Relationships
+    users ||--o{ products : "created_by"
+    users ||--o{ stock_imports : "user_id"
+    users ||--o{ sales : "cashier_id"
+    users ||--o{ inventory_transactions : "user_id"
+    roles ||--o{ users : "role_id"
+    categories ||--o{ products : "category_id"
+    products ||--o{ product_variants : "product_id"
+    product_variants ||--|| inventory : "variant_id"
+    product_variants ||--o{ stock_import_items : "variant_id"
+    product_variants ||--o{ sale_items : "variant_id"
+    product_variants ||--o{ inventory_transactions : "variant_id"
+    stock_imports ||--o{ stock_import_items : "import_id"
+    stock_imports ||--o{ inventory_transactions : "import_id"
+    sales ||--o{ sale_items : "sale_id"
+    sales ||--o{ inventory_transactions : "sale_id"
+```
