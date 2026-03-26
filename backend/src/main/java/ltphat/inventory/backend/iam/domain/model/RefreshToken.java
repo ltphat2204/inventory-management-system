@@ -16,7 +16,13 @@ public class RefreshToken {
     private User user;
     private String token;
     private LocalDateTime expiryDate;
-    
+
+    private String deviceId;
+
+    private String lastIp;
+    private String lastUserAgent;
+    private LocalDateTime lastUsedAt;
+
     public boolean isExpired() {
         return expiryDate.isBefore(LocalDateTime.now());
     }

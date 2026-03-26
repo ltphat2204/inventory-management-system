@@ -9,4 +9,5 @@ public interface IRefreshTokenRepository {
     RefreshToken save(RefreshToken refreshToken);
     void deleteByUser(User user);
     void deleteByToken(String token);
+    void deleteByUserId(Long userId);
 }

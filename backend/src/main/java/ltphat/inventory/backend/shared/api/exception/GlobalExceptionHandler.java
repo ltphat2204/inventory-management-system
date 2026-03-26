@@ -1,5 +1,8 @@
 package ltphat.inventory.backend.shared.api.exception;
 
+import ltphat.inventory.backend.iam.domain.exception.InvalidCredentialsException;
+import ltphat.inventory.backend.iam.domain.exception.TokenRefreshException;
+import ltphat.inventory.backend.iam.domain.exception.TokenSecurityException;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,5 +38,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("BAD_REQUEST", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("INVALID_CREDENTIALS", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(TokenRefreshException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTokenRefreshException(TokenRefreshException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("TOKEN_REFRESH_ERROR", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(TokenSecurityException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTokenSecurityException(TokenSecurityException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("TOKEN_SECURITY_VIOLATION", ex.getMessage(), null));
     }
 }

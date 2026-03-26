@@ -12,4 +12,5 @@ public interface SpringDataRefreshTokenRepository extends JpaRepository<JpaRefre
     Optional<JpaRefreshToken> findByToken(String token);
     void deleteByUser(JpaUser user);
     void deleteByToken(String token);
+    void deleteByUserId(Long userId);
 }

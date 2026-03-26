@@ -45,4 +45,10 @@ public class RefreshTokenRepositoryAdapter implements IRefreshTokenRepository {
     public void deleteByToken(String token) {
         springDataRefreshTokenRepository.deleteByToken(token);
     }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        springDataRefreshTokenRepository.deleteByUserId(userId);
+    }
 }

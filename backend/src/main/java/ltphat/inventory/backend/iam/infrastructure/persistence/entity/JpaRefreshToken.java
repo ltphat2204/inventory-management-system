@@ -22,7 +22,7 @@ public class JpaRefreshToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private JpaUser user;
 
@@ -31,6 +31,19 @@ public class JpaRefreshToken {
 
     @Column(name = "expiry_date", nullable = false)
     private LocalDateTime expiryDate;
+
+    @Column(name = "device_id")
+    private String deviceId;
+
+    // Defense 4: IP / User-Agent anomaly detection
+    @Column(name = "last_ip")
+    private String lastIp;
+
+    @Column(name = "last_user_agent", length = 500)
+    private String lastUserAgent;
+
+    @Column(name = "last_used_at")
+    private LocalDateTime lastUsedAt;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

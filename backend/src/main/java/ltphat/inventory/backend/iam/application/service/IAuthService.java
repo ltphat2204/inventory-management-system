@@ -1,12 +1,11 @@
 package ltphat.inventory.backend.iam.application.service;
 
-import ltphat.inventory.backend.iam.application.dto.AuthResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import ltphat.inventory.backend.iam.application.dto.AuthResult;
 import ltphat.inventory.backend.iam.application.dto.LoginRequest;
-import ltphat.inventory.backend.iam.application.dto.LogoutRequest;
-import ltphat.inventory.backend.iam.application.dto.RefreshTokenRequest;
 
 public interface IAuthService {
-    AuthResponse login(LoginRequest request);
-    AuthResponse refreshToken(RefreshTokenRequest request);
-    void logout(LogoutRequest request);
+    AuthResult login(LoginRequest request, String deviceId, HttpServletRequest httpRequest);
+    AuthResult refreshToken(String rawRefreshToken, String deviceId, HttpServletRequest httpRequest);
+    void logout(String rawRefreshToken);
 }

@@ -1,19 +1,21 @@
 package ltphat.inventory.backend.iam.application.service.impl;
 
+import jakarta.servlet.http.HttpServletRequest;
 import ltphat.inventory.backend.iam.application.AuthApplicationMapper;
 import ltphat.inventory.backend.iam.application.dto.AuthResponse;
+import ltphat.inventory.backend.iam.application.dto.AuthResult;
 import ltphat.inventory.backend.iam.application.dto.LoginRequest;
-import ltphat.inventory.backend.iam.application.dto.LogoutRequest;
-import ltphat.inventory.backend.iam.application.dto.RefreshTokenRequest;
 import ltphat.inventory.backend.iam.application.service.IAuthService;
 import ltphat.inventory.backend.iam.domain.exception.InvalidCredentialsException;
 import ltphat.inventory.backend.iam.domain.exception.TokenRefreshException;
+import ltphat.inventory.backend.iam.domain.exception.TokenSecurityException;
 import ltphat.inventory.backend.iam.domain.model.RefreshToken;
 import ltphat.inventory.backend.iam.domain.model.User;
 import ltphat.inventory.backend.iam.domain.repository.IRefreshTokenRepository;
 import ltphat.inventory.backend.shared.security.CustomUserDetails;
 import ltphat.inventory.backend.shared.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements IAuthService {
@@ -38,7 +42,7 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     @Transactional
-    public AuthResponse login(LoginRequest request) {
+    public AuthResult login(LoginRequest request, String deviceId, HttpServletRequest httpRequest) {
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
@@ -57,55 +61,102 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         String accessToken = jwtTokenProvider.generateAccessToken(userDetails);
-        String refreshTokenString = jwtTokenProvider.generateRefreshToken(userDetails);
 
-        // Invalidate old tokens for this user and save new one
         refreshTokenRepository.deleteByUser(user);
-        
+
+        String rawRefreshToken = UUID.randomUUID().toString();
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)
-                .token(refreshTokenString)
+                .token(rawRefreshToken)
                 .expiryDate(LocalDateTime.now().plusSeconds(jwtRefreshExpiration / 1000))
+                .deviceId(deviceId)
+                .lastIp(resolveClientIp(httpRequest))
+                .lastUserAgent(httpRequest.getHeader("User-Agent"))
+                .lastUsedAt(LocalDateTime.now())
                 .build();
-        
+
         refreshTokenRepository.save(refreshToken);
 
-        return AuthResponse.builder()
+        AuthResponse response = AuthResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshTokenString)
                 .user(mapper.toDto(user))
+                .build();
+
+        return AuthResult.builder()
+                .response(response)
+                .newRefreshToken(rawRefreshToken)
                 .build();
     }
 
     @Override
     @Transactional
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
-        String requestRefreshToken = request.getRefreshToken();
-        
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(requestRefreshToken)
-                .orElseThrow(() -> new TokenRefreshException("Refresh token is not in database!"));
+    public AuthResult refreshToken(String rawRefreshToken, String deviceId, HttpServletRequest httpRequest) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(rawRefreshToken)
+                .orElseThrow(() -> {
+                    log.warn("Refresh token not found, possible reuse attack detected");
+                    return new TokenRefreshException("Refresh token is invalid or has already been used");
+                });
 
         if (refreshToken.isExpired()) {
             refreshTokenRepository.deleteByToken(refreshToken.getToken());
-            throw new TokenRefreshException("Refresh token was expired. Please make a new signin request");
+            throw new TokenRefreshException("Refresh token has expired. Please sign in again");
         }
+
+        if (refreshToken.getDeviceId() != null && !refreshToken.getDeviceId().equals(deviceId)) {
+            log.warn("Device mismatch for user {}. Revoking all tokens.", refreshToken.getUser().getId());
+            refreshTokenRepository.deleteByUserId(refreshToken.getUser().getId());
+            throw new TokenSecurityException("Device mismatch detected. All sessions have been revoked");
+        }
+
+        String currentIp = resolveClientIp(httpRequest);
+        if (refreshToken.getLastIp() != null && !refreshToken.getLastIp().equals(currentIp)) {
+            log.warn("IP change detected for user {}: {} -> {}",
+                    refreshToken.getUser().getId(), refreshToken.getLastIp(), currentIp);
+            throw new TokenSecurityException("IP change detected. Please re-authenticate");
+        }
+
+        refreshTokenRepository.deleteByToken(refreshToken.getToken());
 
         User user = refreshToken.getUser();
         CustomUserDetails userDetails = new CustomUserDetails(user);
+        String newAccessToken = jwtTokenProvider.generateAccessToken(userDetails);
 
-        String token = jwtTokenProvider.generateAccessToken(userDetails);
-        
-        return AuthResponse.builder()
-                .accessToken(token)
-                .refreshToken(requestRefreshToken)
+        String newRawToken = UUID.randomUUID().toString();
+        RefreshToken newRefreshToken = RefreshToken.builder()
+                .user(user)
+                .token(newRawToken)
+                .expiryDate(LocalDateTime.now().plusSeconds(jwtRefreshExpiration / 1000))
+                .deviceId(deviceId)
+                .lastIp(currentIp)
+                .lastUserAgent(httpRequest.getHeader("User-Agent"))
+                .lastUsedAt(LocalDateTime.now())
+                .build();
+
+        refreshTokenRepository.save(newRefreshToken);
+
+        AuthResponse response = AuthResponse.builder()
+                .accessToken(newAccessToken)
                 .user(mapper.toDto(user))
+                .build();
+
+        return AuthResult.builder()
+                .response(response)
+                .newRefreshToken(newRawToken)
                 .build();
     }
 
     @Override
     @Transactional
-    public void logout(LogoutRequest request) {
-        refreshTokenRepository.deleteByToken(request.getRefreshToken());
+    public void logout(String rawRefreshToken) {
+        refreshTokenRepository.deleteByToken(rawRefreshToken);
         SecurityContextHolder.clearContext();
+    }
+
+    private String resolveClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }
