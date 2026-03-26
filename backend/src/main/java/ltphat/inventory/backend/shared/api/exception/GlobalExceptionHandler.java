@@ -1,5 +1,8 @@
 package ltphat.inventory.backend.shared.api.exception;
 
+import ltphat.inventory.backend.iam.domain.exception.DuplicateUsernameException;
+import ltphat.inventory.backend.iam.domain.exception.RoleNotFoundException;
+import ltphat.inventory.backend.iam.domain.exception.UserNotFoundException;
 import ltphat.inventory.backend.iam.domain.exception.InvalidCredentialsException;
 import ltphat.inventory.backend.iam.domain.exception.TokenRefreshException;
 import ltphat.inventory.backend.iam.domain.exception.TokenSecurityException;
@@ -56,5 +59,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleTokenSecurityException(TokenSecurityException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error("TOKEN_SECURITY_VIOLATION", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserNotFoundException(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("USER_NOT_FOUND", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(RoleNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRoleNotFoundException(RoleNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("ROLE_NOT_FOUND", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(DuplicateUsernameException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateUsernameException(DuplicateUsernameException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("DUPLICATE_USERNAME", ex.getMessage(), null));
     }
 }

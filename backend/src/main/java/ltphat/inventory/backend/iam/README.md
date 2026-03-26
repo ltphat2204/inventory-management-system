@@ -6,8 +6,10 @@ The IAM module is responsible for managing user identities, roles, and the authe
 
 - **Authentication Endpoints (`AuthController`)**: Exposes APIs for login, logout, and token refreshing.
 - **Secure Token Management**: Refresh token rotation, device fingerprint binding, and IP anomaly detection.
-- **User & Role Management**: Core domain logic for `User` and `Role` entities.
-- **Custom Exceptions**: Domain-specific exceptions (`InvalidCredentialsException`, `TokenRefreshException`, `TokenSecurityException`) for precise error handling.
+- **User Management Endpoints (`UserController`)**: Admin-only CRUD for users — list (paginated + filtered), create, get, update, soft-deactivate, and password reset.
+- **RBAC Enforcement**: Every user management endpoint is guarded by `@PreAuthorize("hasRole('ADMIN')")` via Spring Method Security.
+- **User & Role Domain Models**: Core domain logic for `User`, `Role`, and `RefreshToken`.
+- **Custom Exceptions**: Domain-specific exceptions for precise error handling — authentication (`InvalidCredentialsException`, `TokenRefreshException`, `TokenSecurityException`) and user management (`UserNotFoundException`, `DuplicateUsernameException`, `RoleNotFoundException`).
 
 ---
 
@@ -16,22 +18,44 @@ The IAM module is responsible for managing user identities, roles, and the authe
 ### 1. Presentation Layer (`presentation/controller/`)
 - `AuthController.java`: Entry point for login, refresh, and logout. Reads `X-Device-Id` from request headers and manages the `refreshToken` HttpOnly cookie.
 
+  | Method | Path | Description |
+  |---|---|---|
+  | `POST` | `/api/v1/auth/login` | Authenticate and receive access token + refresh token cookie |
+  | `POST` | `/api/v1/auth/refresh` | Rotate refresh token and return new access token |
+  | `POST` | `/api/v1/auth/logout` | Invalidate refresh token and clear cookie |
+- `UserController.java`: Entry point for all user management operations. All six endpoints are annotated with `@PreAuthorize("hasRole('ADMIN')")` and return the standard `ApiResponse` envelope.
+
+  | Method | Path | Description |
+  |---|---|---|
+  | `GET` | `/api/v1/users` | Paginated list; supports `?page`, `?limit`, `?sort`, `?role`, `?isActive` |
+  | `POST` | `/api/v1/users` | Create user (201) |
+  | `GET` | `/api/v1/users/{id}` | Get single user |
+  | `PUT` | `/api/v1/users/{id}` | Full update |
+  | `DELETE` | `/api/v1/users/{id}` | Soft-deactivate (`isActive=false`) |
+  | `POST` | `/api/v1/users/{id}/reset-password` | Admin password reset |
+
 ### 2. Application Layer (`application/`)
-- **Services**: `IAuthService` and `AuthServiceImpl` orchestrate the login flow, credential verification, token issuance, and security checks.
-- **DTOs**: `LoginRequest`, `RefreshTokenRequest`, `AuthResponse`, `AuthResult`, and `UserDto` ensure internal domain models are never exposed to the API layer.
-- **Mappers**: `AuthApplicationMapper` converts between Domain Models and DTOs.
+- **Services**:
+  - `IAuthService` / `AuthServiceImpl`: Orchestrate login, token issuance, rotation, and security checks.
+  - `IUserManagementAppService` / `UserManagementAppServiceImpl`: Orchestrate user CRUD — enforces unique username check, hashes passwords via `BCryptPasswordEncoder`, resolves roles, and delegates persistence to the domain repository.
+- **DTOs** (request): `LoginRequest`, `RefreshTokenRequest`, `CreateUserRequest`, `UpdateUserRequest`, `ResetPasswordRequest`.
+- **DTOs** (response): `AuthResponse`, `AuthResult`, `UserDto` (used in login payload), `UserDetailDto` (used in user management), `RoleDto`.
+- **Commands** (`domain/command/`): `CreateUserCommand`, `UpdateUserCommand` — plain Java value objects that carry validated, encoded data into persistence without coupling the domain to HTTP or Spring.
+- **Mappers**: `AuthApplicationMapper` converts `User` → `UserDto` and `User` → `UserDetailDto`, and `Role` → `RoleDto`.
 
 ### 3. Domain Layer (`domain/`)
 The pure business logic, independent of any framework.
-- **Models**: `User`, `Role`, and `RefreshToken` (carries `deviceId`, `lastIp`, `lastUserAgent`, `lastUsedAt`).
-- **Repositories (Interfaces)**: `IUserRepository`, `IRoleRepository`, and `IRefreshTokenRepository`.
-- **Exceptions**: `InvalidCredentialsException`, `TokenRefreshException`, `TokenSecurityException`.
+- **Models**: `User` (has `isActive`, `email`, `createdAt`, `updatedAt`), `Role`, and `RefreshToken` (carries `deviceId`, `lastIp`, `lastUserAgent`, `lastUsedAt`).
+- **Repositories (Interfaces)**: `IUserRepository` (includes paginated `findAll` with optional `roleName`/`isActive` filters, and `existsByUsernameAndIdNot`), `IRoleRepository`, `IRefreshTokenRepository`.
+- **Exceptions**:
+  - Authentication: `InvalidCredentialsException`, `TokenRefreshException`, `TokenSecurityException`.
+  - User management: `UserNotFoundException`, `RoleNotFoundException`, `DuplicateUsernameException`.
 
 ### 4. Infrastructure Layer (`infrastructure/persistence/`)
 Connects the domain to PostgreSQL.
-- **Entities**: `JpaUser`, `JpaRole`, `JpaRefreshToken`.
-- **Spring Data Repositories**: `SpringDataUserRepository`, `SpringDataRefreshTokenRepository`, etc.
-- **Adapters**: `UserRepositoryAdapter`, `RefreshTokenRepositoryAdapter` — implement the domain interfaces.
+- **Entities**: `JpaUser` (has `is_active`, `created_at`, `updated_at` via `@EntityListeners(AuditingEntityListener.class)`), `JpaRole`, `JpaRefreshToken`.
+- **Spring Data Repositories**: `SpringDataUserRepository` (extends `JpaSpecificationExecutor` for dynamic filtering), `SpringDataRefreshTokenRepository`, `SpringDataRoleRepository`.
+- **Adapters**: `UserRepositoryAdapter` (builds `Specification<JpaUser>` from optional `roleName`/`isActive` query params), `RefreshTokenRepositoryAdapter`.
 - **Mappers**: MapStruct interfaces (`UserPersistenceMapper`, `RefreshTokenPersistenceMapper`).
 
 ---

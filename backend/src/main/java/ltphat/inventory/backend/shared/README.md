@@ -9,7 +9,16 @@ This module is divided into three primary packages: **API**, **Config**, and **S
 ### 1. Global API Standards (`api/`)
 Ensures that the entire API communicates consistently with the frontend clients.
 - **`ApiResponse.java`**: A standardized generic wrapper for all REST API endpoints. It ensures every endpoint returns a consistent JSON structure (e.g., success status, data payload, error messages).
-- **`GlobalExceptionHandler.java`**: A centralized `@ControllerAdvice`. It intercepts exceptions thrown anywhere in the system (like custom domain exceptions from the IAM module or standard Spring exceptions) and maps them into a clean, predictable HTTP response.
+- **`GlobalExceptionHandler.java`**: A centralized `@ControllerAdvice`. It intercepts exceptions thrown anywhere in the system and maps them to predictable HTTP responses. Currently handles:
+  - `InvalidCredentialsException` → 401
+  - `TokenRefreshException` → 401
+  - `TokenSecurityException` → 401
+  - `UserNotFoundException` → 404
+  - `RoleNotFoundException` → 404
+  - `DuplicateUsernameException` → 400
+  - `MethodArgumentNotValidException` → 400 (with field-level error details)
+  - `IllegalArgumentException` → 400
+  - `Exception` (fallback) → 500
 
 ### 2. Global Configuration (`config/`)
 Contains system-wide Spring Boot configurations.
