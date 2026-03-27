@@ -16,7 +16,11 @@ public class VariantResponse {
     private Boolean isActive;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
-    
-    // Extracted from inventory module for barcode lookup and variant matrix
-    private Integer currentQuantity; 
+
+    // Stock fields populated from the inventory module
+    private Integer currentQuantity;
+    private Boolean lowStock;
+
+    // Populated only by the barcode lookup path
+    private String productNameVn;
 }

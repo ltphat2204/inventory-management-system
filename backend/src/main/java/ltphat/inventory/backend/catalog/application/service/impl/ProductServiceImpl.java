@@ -111,11 +111,16 @@ public class ProductServiceImpl implements ProductService {
             response.setId(entity.getId());
             response.setProductCode(entity.getProductCode());
             response.setNameVn(entity.getNameVn());
-            // Need to map full response manually if skipping MapStruct here for pagination integration
+            response.setNameEn(entity.getNameEn());
             response.setCategoryId(entity.getCategoryId());
             response.setBasePriceVnd(entity.getBasePriceVnd());
+            response.setVatRate(entity.getVatRate());
+            response.setDescription(entity.getDescription());
             response.setIsActive(entity.getIsActive());
-            // Map variations summary could be done here if needed
+            response.setCreatedBy(entity.getCreatedBy());
+            response.setCreatedAt(entity.getCreatedAt());
+            response.setUpdatedAt(entity.getUpdatedAt());
+            response.setVariantCount(entity.getVariants() != null ? entity.getVariants().size() : 0);
             return response;
         });
     }
@@ -202,7 +207,12 @@ public class ProductServiceImpl implements ProductService {
                 vr.setBarcode(v.getBarcode());
                 vr.setLowStockThreshold(v.getLowStockThreshold());
                 vr.setIsActive(v.getIsActive());
-                vr.setCurrentQuantity(inventoryService.getCurrentQuantity(v.getId()));
+                vr.setCreatedAt(v.getCreatedAt());
+                vr.setUpdatedAt(v.getUpdatedAt());
+                Integer qty = inventoryService.getCurrentQuantity(v.getId());
+                vr.setCurrentQuantity(qty);
+                int threshold = v.getLowStockThreshold() != null ? v.getLowStockThreshold() : 0;
+                vr.setLowStock(qty != null && qty < threshold);
                 return vr;
             }).collect(Collectors.toList());
             res.setVariants(vResList);

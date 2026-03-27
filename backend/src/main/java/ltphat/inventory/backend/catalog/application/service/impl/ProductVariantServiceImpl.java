@@ -38,7 +38,10 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                 .map(v -> {
                     VariantResponse vr = mapToResponse(v);
                     if (includeStock) {
-                        vr.setCurrentQuantity(inventoryService.getCurrentQuantity(v.getId()));
+                        Integer qty = inventoryService.getCurrentQuantity(v.getId());
+                        vr.setCurrentQuantity(qty);
+                        int threshold = v.getLowStockThreshold() != null ? v.getLowStockThreshold() : 0;
+                        vr.setLowStock(qty != null && qty < threshold);
                     }
                     return vr;
                 })
@@ -147,9 +150,14 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     public VariantResponse getVariantByBarcode(String barcode) {
         ProductVariant variant = variantRepository.findByBarcode(barcode)
                 .orElseThrow(() -> new VariantNotFoundException("No variant found with barcode: " + barcode));
-                
+
         VariantResponse response = mapToResponse(variant);
-        response.setCurrentQuantity(inventoryService.getCurrentQuantity(variant.getId()));
+        Integer qty = inventoryService.getCurrentQuantity(variant.getId());
+        response.setCurrentQuantity(qty);
+        int threshold = variant.getLowStockThreshold() != null ? variant.getLowStockThreshold() : 0;
+        response.setLowStock(qty != null && qty < threshold);
+        productRepository.findById(variant.getProductId())
+                .ifPresent(p -> response.setProductNameVn(p.getNameVn()));
         return response;
     }
 

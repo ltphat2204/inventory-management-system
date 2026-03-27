@@ -10,7 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "products")
+@Table(name = "products", indexes = {
+    @Index(name = "idx_products_product_code", columnList = "product_code"),
+    @Index(name = "idx_products_name_vn", columnList = "name_vn"),
+    @Index(name = "idx_products_is_active", columnList = "is_active")
+})
 @SequenceGenerator(name = "products_id_seq", sequenceName = "products_id_seq", allocationSize = 1)
 @Getter
 @Setter
