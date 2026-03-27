@@ -19,5 +19,6 @@ public class ProductResponse {
     private Long createdBy;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
+    private Integer variantCount;
     private List<VariantResponse> variants;
 }
