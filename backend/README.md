@@ -103,6 +103,12 @@ The IAM module provides a secure foundation for user authentication and resource
 - **Role-Based Access Control (RBAC)**: Supports defining user roles to restrict access to specific API endpoints.
 - **User Persistence**: Manages the lifecycle of user accounts and their associated security credentials.
 
+### Catalog Management
+The Catalog module allows for the organization and management of product categories.
+- **Category CRUD**: Full support for creating, reading (individual and paginated), updating, and deleting categories.
+- **Delete Constraints**: Prevents deletion of categories that are linked to products (currently enforced via a placeholder check).
+- **Localized Naming**: Supports both Vietnamese (`name_vn`) and English (`name_en`) naming for categories.
+
 ### Shared Infrastructure
 The shared kernel provides a standardized interface for the entire application.
 - **Standardized API Responses**: A unified `ApiResponse` wrapper ensures consistency across all REST endpoints.

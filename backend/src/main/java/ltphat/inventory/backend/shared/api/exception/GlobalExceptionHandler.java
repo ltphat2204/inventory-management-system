@@ -6,6 +6,8 @@ import ltphat.inventory.backend.iam.domain.exception.UserNotFoundException;
 import ltphat.inventory.backend.iam.domain.exception.InvalidCredentialsException;
 import ltphat.inventory.backend.iam.domain.exception.TokenRefreshException;
 import ltphat.inventory.backend.iam.domain.exception.TokenSecurityException;
+import ltphat.inventory.backend.catalog.domain.exception.CategoryNotFoundException;
+import ltphat.inventory.backend.catalog.domain.exception.CategoryHasProductsException;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,5 +79,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleDuplicateUsernameException(DuplicateUsernameException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("DUPLICATE_USERNAME", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCategoryNotFoundException(CategoryNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("CATEGORY_NOT_FOUND", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(CategoryHasProductsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCategoryHasProductsException(CategoryHasProductsException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("CATEGORY_HAS_PRODUCTS", ex.getMessage(), null));
     }
 }
