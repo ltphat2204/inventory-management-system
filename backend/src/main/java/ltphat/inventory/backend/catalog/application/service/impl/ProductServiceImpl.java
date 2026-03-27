@@ -2,6 +2,7 @@ package ltphat.inventory.backend.catalog.application.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.catalog.application.dto.CreateProductRequest;
+import ltphat.inventory.backend.catalog.application.dto.VariantDto;
 import ltphat.inventory.backend.catalog.application.dto.ProductResponse;
 import ltphat.inventory.backend.catalog.application.dto.VariantResponse;
 import ltphat.inventory.backend.catalog.application.service.ProductService;
@@ -23,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,25 +59,12 @@ public class ProductServiceImpl implements ProductService {
                 .updatedAt(ZonedDateTime.now())
                 .build();
 
-        List<ProductVariant> variants = new ArrayList<>();
-        for (var variantDto : request.getVariants()) {
-            String sku = generateSku(request.getProductCode(), variantDto.getSize(), variantDto.getColor(), variantDto.getDesignStyle());
-            
-            if (variantRepository.existsBySku(sku)) {
-                throw new DuplicateVariantSkuException("Generated SKU already exists: " + sku);
-            }
-
-            variants.add(ProductVariant.builder()
-                    .sku(sku)
-                    .size(variantDto.getSize())
-                    .color(variantDto.getColor())
-                    .designStyle(variantDto.getDesignStyle())
-                    .variantPriceVnd(variantDto.getVariantPriceVnd() != null ? variantDto.getVariantPriceVnd() : request.getBasePriceVnd())
-                    .barcode(variantDto.getBarcode())
-                    .lowStockThreshold(variantDto.getLowStockThreshold())
-                    .isActive(true)
-                    .build());
-        }
+        List<ProductVariant> variants = buildVariants(
+            request.getProductCode(),
+            request.getBasePriceVnd(),
+            request.getVariants(),
+            null
+        );
         product.setVariants(variants);
 
         Product savedProduct = productRepository.save(product);
@@ -138,9 +128,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse updateProduct(Long id, CreateProductRequest request) {
         Product existing = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
-        
-        // Very basic update to prevent huge code payload. 
-        // In real system, carefully handle variation matrix matching to avoid deleting existing IDs.
+
         existing.setNameVn(request.getNameVn());
         existing.setNameEn(request.getNameEn());
         existing.setCategoryId(request.getCategoryId());
@@ -148,9 +136,23 @@ public class ProductServiceImpl implements ProductService {
         existing.setVatRate(request.getVatRate());
         existing.setDescription(request.getDescription());
         existing.setUpdatedAt(ZonedDateTime.now());
-        
-        // Assuming we rely on full replace for variants for simplicity in this implementation
-        return mapToResponse(productRepository.save(existing));
+
+        List<ProductVariant> replacementVariants = buildVariants(
+            existing.getProductCode(),
+            request.getBasePriceVnd(),
+            request.getVariants(),
+            existing.getId()
+        );
+        existing.setVariants(replacementVariants);
+
+        Product updated = productRepository.save(existing);
+
+        List<Long> variantIds = updated.getVariants().stream()
+            .map(ProductVariant::getId)
+            .collect(Collectors.toList());
+        inventoryService.initializeZeroStockForVariants(variantIds);
+
+        return mapToResponse(updated);
     }
 
     @Override
@@ -178,6 +180,44 @@ public class ProductServiceImpl implements ProductService {
         if (color != null && !color.trim().isEmpty()) sku.append("-").append(color.trim().toUpperCase());
         if (design != null && !design.trim().isEmpty()) sku.append("-").append(design.trim().toUpperCase());
         return sku.toString();
+    }
+
+    private List<ProductVariant> buildVariants(
+            String productCode,
+            Long basePriceVnd,
+            List<VariantDto> variantDtos,
+            Long currentProductId
+    ) {
+        List<ProductVariant> variants = new ArrayList<>();
+        Set<String> generatedSkus = new HashSet<>();
+
+        for (VariantDto variantDto : variantDtos) {
+            String sku = generateSku(productCode, variantDto.getSize(), variantDto.getColor(), variantDto.getDesignStyle());
+
+            if (!generatedSkus.add(sku)) {
+                throw new DuplicateVariantSkuException("Duplicate variant combination in request: " + sku);
+            }
+
+            variantRepository.findBySku(sku).ifPresent(existingVariant -> {
+                boolean sameProduct = currentProductId != null && currentProductId.equals(existingVariant.getProductId());
+                if (!sameProduct) {
+                    throw new DuplicateVariantSkuException("Generated SKU already exists: " + sku);
+                }
+            });
+
+            variants.add(ProductVariant.builder()
+                    .sku(sku)
+                    .size(variantDto.getSize())
+                    .color(variantDto.getColor())
+                    .designStyle(variantDto.getDesignStyle())
+                    .variantPriceVnd(variantDto.getVariantPriceVnd() != null ? variantDto.getVariantPriceVnd() : basePriceVnd)
+                    .barcode(variantDto.getBarcode())
+                    .lowStockThreshold(variantDto.getLowStockThreshold())
+                    .isActive(true)
+                    .build());
+        }
+
+        return variants;
     }
     
     private ProductResponse mapToResponse(Product product) {

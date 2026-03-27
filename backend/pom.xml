@@ -161,6 +161,7 @@
                                     <element>PACKAGE</element>
                                     <includes>
                                         <include>ltphat.inventory.backend.iam.*</include>
+                                        <include>ltphat.inventory.backend.catalog.*</include>
                                     </includes>
                                     <limits>
                                         <limit>
