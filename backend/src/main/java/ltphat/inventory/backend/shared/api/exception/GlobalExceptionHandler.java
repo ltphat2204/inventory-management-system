@@ -8,6 +8,10 @@ import ltphat.inventory.backend.iam.domain.exception.TokenRefreshException;
 import ltphat.inventory.backend.iam.domain.exception.TokenSecurityException;
 import ltphat.inventory.backend.catalog.domain.exception.CategoryNotFoundException;
 import ltphat.inventory.backend.catalog.domain.exception.CategoryHasProductsException;
+import ltphat.inventory.backend.catalog.domain.exception.ProductNotFoundException;
+import ltphat.inventory.backend.catalog.domain.exception.VariantNotFoundException;
+import ltphat.inventory.backend.catalog.domain.exception.DuplicateProductCodeException;
+import ltphat.inventory.backend.catalog.domain.exception.DuplicateVariantSkuException;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,5 +95,29 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleCategoryHasProductsException(CategoryHasProductsException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("CATEGORY_HAS_PRODUCTS", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleProductNotFoundException(ProductNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("PRODUCT_NOT_FOUND", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(VariantNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleVariantNotFoundException(VariantNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("VARIANT_NOT_FOUND", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(DuplicateProductCodeException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateProductCodeException(DuplicateProductCodeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("DUPLICATE_PRODUCT_CODE", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(DuplicateVariantSkuException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateVariantSkuException(DuplicateVariantSkuException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("DUPLICATE_VARIANT_SKU", ex.getMessage(), null));
     }
 }
