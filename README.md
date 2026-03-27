@@ -194,6 +194,18 @@ erDiagram
         bigint line_total_vnd
     }
 
+    refresh_tokens {
+        bigint id PK
+        bigint user_id FK
+        varchar token UK
+        timestamptz expiry_date
+        varchar device_id
+        varchar last_ip
+        varchar last_user_agent
+        timestamptz last_used_at
+        timestamptz created_at
+    }
+
     inventory_transactions {
         bigint id PK
         bigint variant_id FK
@@ -214,6 +226,7 @@ erDiagram
     users ||--o{ stock_imports : "user_id"
     users ||--o{ sales : "cashier_id"
     users ||--o{ inventory_transactions : "user_id"
+    users ||--o{ refresh_tokens : "user_id"
     roles ||--o{ users : "role_id"
     categories ||--o{ products : "category_id"
     products ||--o{ product_variants : "product_id"
