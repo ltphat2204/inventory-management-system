@@ -47,7 +47,7 @@ public class UserRepositoryAdapter implements IUserRepository {
 
     @Override
     public Page<User> findAll(Pageable pageable, String roleName, Boolean isActive) {
-        Specification<JpaUser> spec = Specification.where((Specification<JpaUser>) null);
+        Specification<JpaUser> spec = (root, query, cb) -> cb.conjunction();
 
         if (roleName != null && !roleName.isBlank()) {
             spec = spec.and((root, query, cb) -> {
