@@ -7,7 +7,10 @@ import org.hibernate.envers.Audited;
 import java.time.ZonedDateTime;
 
 @Entity
-@Table(name = "inventory")
+@Table(name = "inventory", indexes = {
+    @Index(name = "idx_inventory_variant_id", columnList = "variant_id"),
+    @Index(name = "idx_inventory_current_quantity", columnList = "current_quantity")
+})
 @SequenceGenerator(name = "inventory_id_seq", sequenceName = "inventory_id_seq", allocationSize = 1)
 @Getter
 @Setter

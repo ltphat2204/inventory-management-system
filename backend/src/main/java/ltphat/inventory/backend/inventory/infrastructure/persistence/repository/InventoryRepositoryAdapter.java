@@ -2,9 +2,12 @@ package ltphat.inventory.backend.inventory.infrastructure.persistence.repository
 
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.inventory.domain.model.Inventory;
+import ltphat.inventory.backend.inventory.domain.model.InventoryOverview;
 import ltphat.inventory.backend.inventory.domain.repository.IInventoryRepository;
 import ltphat.inventory.backend.inventory.infrastructure.persistence.entity.JpaInventory;
 import ltphat.inventory.backend.inventory.infrastructure.persistence.mapper.InventoryMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -49,5 +52,23 @@ public class InventoryRepositoryAdapter implements IInventoryRepository {
         return springDataRepository.findByVariantIdIn(variantIds).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<InventoryOverview> findInventoryOverview(Boolean lowStockOnly, Long productId, Pageable pageable) {
+        return springDataRepository.findInventoryOverview(lowStockOnly, productId, pageable)
+                .map(projection -> {
+                    Integer threshold = projection.getLowStockThreshold() == null ? 0 : projection.getLowStockThreshold();
+                    Integer quantity = projection.getCurrentQuantity() == null ? 0 : projection.getCurrentQuantity();
+                    return InventoryOverview.builder()
+                            .variantId(projection.getVariantId())
+                            .variantSku(projection.getVariantSku())
+                            .productId(projection.getProductId())
+                            .productName(projection.getProductName())
+                            .currentQuantity(projection.getCurrentQuantity())
+                            .lowStockThreshold(projection.getLowStockThreshold())
+                            .lowStock(quantity < threshold)
+                            .build();
+                });
     }
 }
