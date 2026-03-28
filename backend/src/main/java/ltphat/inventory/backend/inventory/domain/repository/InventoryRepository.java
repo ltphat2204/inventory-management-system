@@ -8,5 +8,6 @@ public interface InventoryRepository {
     Inventory save(Inventory inventory);
     List<Inventory> saveAll(List<Inventory> inventories);
     Optional<Inventory> findByVariantId(Long variantId);
+    Optional<Inventory> findByVariantIdWithLock(Long variantId);
     List<Inventory> findByVariantIdIn(List<Long> variantIds);
 }

@@ -12,6 +12,7 @@ import ltphat.inventory.backend.catalog.domain.exception.ProductNotFoundExceptio
 import ltphat.inventory.backend.catalog.domain.exception.VariantNotFoundException;
 import ltphat.inventory.backend.catalog.domain.exception.DuplicateProductCodeException;
 import ltphat.inventory.backend.catalog.domain.exception.DuplicateVariantSkuException;
+import ltphat.inventory.backend.inventory.domain.exception.InventoryNotFoundException;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -119,5 +120,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleDuplicateVariantSkuException(DuplicateVariantSkuException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("DUPLICATE_VARIANT_SKU", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(InventoryNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInventoryNotFoundException(InventoryNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("INVENTORY_NOT_FOUND", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIdempotencyConflictException(IdempotencyConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("IDEMPOTENCY_CONFLICT", ex.getMessage(), null));
     }
 }
