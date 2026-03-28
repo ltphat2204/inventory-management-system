@@ -1,15 +1,15 @@
 package ltphat.inventory.backend.catalog.application.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import ltphat.inventory.backend.catalog.application.CatalogApplicationMapper;
 import ltphat.inventory.backend.catalog.application.dto.CategoryResponse;
 import ltphat.inventory.backend.catalog.application.dto.CreateCategoryRequest;
 import ltphat.inventory.backend.catalog.application.dto.UpdateCategoryRequest;
-import ltphat.inventory.backend.catalog.application.service.CategoryService;
+import ltphat.inventory.backend.catalog.application.service.ICategoryService;
 import ltphat.inventory.backend.catalog.domain.exception.CategoryHasProductsException;
 import ltphat.inventory.backend.catalog.domain.exception.CategoryNotFoundException;
 import ltphat.inventory.backend.catalog.domain.model.Category;
-import ltphat.inventory.backend.catalog.domain.repository.CategoryRepository;
-import ltphat.inventory.backend.catalog.infrastructure.persistence.mapper.CategoryMapper;
+import ltphat.inventory.backend.catalog.domain.repository.ICategoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl implements ICategoryService {
 
-    private final CategoryRepository categoryRepository;
-    private final CategoryMapper categoryMapper;
+    private final ICategoryRepository categoryRepository;
+    private final CatalogApplicationMapper catalogApplicationMapper;
 
     @Override
     @Transactional
@@ -34,7 +34,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .build();
         
         Category saved = categoryRepository.save(category);
-        return categoryMapper.toResponse(saved);
+        return catalogApplicationMapper.toCategoryResponse(saved);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setDescription(request.getDescription());
         
         Category updated = categoryRepository.save(category);
-        return categoryMapper.toResponse(updated);
+        return catalogApplicationMapper.toCategoryResponse(updated);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponse getCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException(id));
-        return categoryMapper.toResponse(category);
+        return catalogApplicationMapper.toCategoryResponse(category);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class CategoryServiceImpl implements CategoryService {
         }
         Pageable pageable = PageRequest.of(pageNumber, limit, sort);
         Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return categoryPage.map(categoryMapper::toResponse);
+        return categoryPage.map(catalogApplicationMapper::toCategoryResponse);
     }
 
     @Override

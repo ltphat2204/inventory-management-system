@@ -1,6 +1,5 @@
 package ltphat.inventory.backend.catalog.infrastructure.persistence.mapper;
 
-import ltphat.inventory.backend.catalog.application.dto.CategoryResponse;
 import ltphat.inventory.backend.catalog.domain.model.Category;
 import ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaCategory;
 import org.junit.jupiter.api.Test;
@@ -50,27 +49,8 @@ class CategoryMapperTest {
     }
 
     @Test
-    void toResponse_shouldMapFields() {
-        ZonedDateTime now = ZonedDateTime.now();
-        Category domain = Category.builder()
-                .id(3L)
-                .nameVn("Giay")
-                .nameEn("Shoes")
-                .description("Footwear")
-                .createdAt(now)
-                .build();
-
-        CategoryResponse response = mapper.toResponse(domain);
-
-        assertThat(response.getId()).isEqualTo(3L);
-        assertThat(response.getNameVn()).isEqualTo("Giay");
-        assertThat(response.getCreatedAt()).isEqualTo(now);
-    }
-
-    @Test
     void shouldReturnNull_whenInputIsNull() {
         assertThat(mapper.toDomain(null)).isNull();
         assertThat(mapper.toEntity(null)).isNull();
-        assertThat(mapper.toResponse(null)).isNull();
     }
 }

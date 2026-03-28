@@ -4,7 +4,7 @@ import ltphat.inventory.backend.catalog.domain.model.ProductVariant;
 import java.util.Optional;
 import java.util.List;
 
-public interface ProductVariantRepository {
+public interface IProductVariantRepository {
     ProductVariant save(ProductVariant variant);
     List<ProductVariant> saveAll(List<ProductVariant> variants);
     Optional<ProductVariant> findById(Long id);

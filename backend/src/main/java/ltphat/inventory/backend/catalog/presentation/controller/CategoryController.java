@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.catalog.application.dto.CategoryResponse;
 import ltphat.inventory.backend.catalog.application.dto.CreateCategoryRequest;
 import ltphat.inventory.backend.catalog.application.dto.UpdateCategoryRequest;
-import ltphat.inventory.backend.catalog.application.service.CategoryService;
+import ltphat.inventory.backend.catalog.application.service.ICategoryService;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CategoryController {
 
-    private final CategoryService categoryService;
+    private final ICategoryService categoryService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<CategoryResponse>>> listCategories(

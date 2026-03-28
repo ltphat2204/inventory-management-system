@@ -1,5 +1,6 @@
 package ltphat.inventory.backend.catalog.application.service.impl;
 
+import ltphat.inventory.backend.catalog.application.CatalogApplicationMapper;
 import ltphat.inventory.backend.catalog.application.dto.VariantDto;
 import ltphat.inventory.backend.catalog.application.dto.VariantResponse;
 import ltphat.inventory.backend.catalog.domain.exception.DuplicateVariantSkuException;
@@ -7,9 +8,9 @@ import ltphat.inventory.backend.catalog.domain.exception.ProductNotFoundExceptio
 import ltphat.inventory.backend.catalog.domain.exception.VariantNotFoundException;
 import ltphat.inventory.backend.catalog.domain.model.Product;
 import ltphat.inventory.backend.catalog.domain.model.ProductVariant;
-import ltphat.inventory.backend.catalog.domain.repository.ProductRepository;
-import ltphat.inventory.backend.catalog.domain.repository.ProductVariantRepository;
-import ltphat.inventory.backend.inventory.application.service.InventoryService;
+import ltphat.inventory.backend.catalog.domain.repository.IProductRepository;
+import ltphat.inventory.backend.catalog.domain.repository.IProductVariantRepository;
+import ltphat.inventory.backend.inventory.application.service.IInventoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,18 +29,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ProductVariantServiceImplTest {
 
     @Mock
-    private ProductVariantRepository variantRepository;
+    private IProductVariantRepository variantRepository;
 
     @Mock
-    private ProductRepository productRepository;
+    private IProductRepository productRepository;
 
     @Mock
-    private InventoryService inventoryService;
+    private IInventoryService inventoryService;
+
+    @Mock
+    private CatalogApplicationMapper catalogApplicationMapper;
 
     @InjectMocks
     private ProductVariantServiceImpl productVariantService;
@@ -63,6 +68,9 @@ class ProductVariantServiceImplTest {
                 .nameVn("Ao thun")
                 .basePriceVnd(100000L)
                 .build();
+
+        lenient().when(catalogApplicationMapper.toVariantResponse(any(ProductVariant.class)))
+            .thenAnswer(invocation -> toVariantResponse(invocation.getArgument(0)));
     }
 
     @Test
@@ -500,5 +508,21 @@ class ProductVariantServiceImplTest {
         assertThat(response.getCurrentQuantity()).isNull();
         assertThat(response.getLowStock()).isFalse();
         assertThat(response.getProductNameVn()).isNull();
+    }
+
+    private VariantResponse toVariantResponse(ProductVariant variant) {
+        VariantResponse response = new VariantResponse();
+        response.setId(variant.getId());
+        response.setSku(variant.getSku());
+        response.setSize(variant.getSize());
+        response.setColor(variant.getColor());
+        response.setDesignStyle(variant.getDesignStyle());
+        response.setVariantPriceVnd(variant.getVariantPriceVnd());
+        response.setBarcode(variant.getBarcode());
+        response.setLowStockThreshold(variant.getLowStockThreshold());
+        response.setIsActive(variant.getIsActive());
+        response.setCreatedAt(variant.getCreatedAt());
+        response.setUpdatedAt(variant.getUpdatedAt());
+        return response;
     }
 }

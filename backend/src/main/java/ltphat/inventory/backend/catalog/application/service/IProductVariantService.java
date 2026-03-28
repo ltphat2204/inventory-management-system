@@ -5,7 +5,7 @@ import ltphat.inventory.backend.catalog.application.dto.VariantResponse;
 
 import java.util.List;
 
-public interface ProductVariantService {
+public interface IProductVariantService {
     List<VariantResponse> getVariantsByProductId(Long productId, boolean includeStock);
     VariantResponse addVariantToProduct(Long productId, VariantDto request);
     VariantResponse getVariant(Long productId, Long variantId);

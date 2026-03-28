@@ -1,13 +1,15 @@
 package ltphat.inventory.backend.catalog.domain.repository;
 
 import ltphat.inventory.backend.catalog.domain.model.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.Optional;
 
-public interface ProductRepository {
+public interface IProductRepository {
     Product save(Product product);
     Optional<Product> findById(Long id);
     Optional<Product> findByProductCode(String productCode);
     boolean existsByProductCode(String productCode);
-    // Pagination and dynamic filtering methods will be handled at the Application layer
-    // or through specific queries/specifications based on Spring Data later.
+    Page<Product> findAll(Pageable pageable, Long categoryId, Boolean isActive, String search);
 }

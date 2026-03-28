@@ -32,7 +32,7 @@ class CategoryRepositoryImplTest {
     private CategoryMapper categoryMapper;
 
     @InjectMocks
-    private CategoryRepositoryImpl repository;
+    private CategoryRepositoryAdapter repository;
 
     @Test
     void save_shouldMapAndPersist() {

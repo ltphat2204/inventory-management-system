@@ -1,19 +1,19 @@
 package ltphat.inventory.backend.inventory.application.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import ltphat.inventory.backend.inventory.application.InventoryApplicationMapper;
 import ltphat.inventory.backend.inventory.application.dto.StockImportRequest;
 import ltphat.inventory.backend.inventory.application.dto.StockImportResponse;
-import ltphat.inventory.backend.inventory.application.dto.StockImportItemResponse;
-import ltphat.inventory.backend.inventory.application.service.StockImportService;
+import ltphat.inventory.backend.inventory.application.service.IStockImportService;
 import ltphat.inventory.backend.inventory.domain.exception.InventoryNotFoundException;
 import ltphat.inventory.backend.inventory.domain.model.Inventory;
 import ltphat.inventory.backend.inventory.domain.model.InventoryTransaction;
 import ltphat.inventory.backend.inventory.domain.model.MovementType;
 import ltphat.inventory.backend.inventory.domain.model.StockImport;
 import ltphat.inventory.backend.inventory.domain.model.StockImportItem;
-import ltphat.inventory.backend.inventory.domain.repository.InventoryRepository;
-import ltphat.inventory.backend.inventory.domain.repository.InventoryTransactionRepository;
-import ltphat.inventory.backend.inventory.domain.repository.StockImportRepository;
+import ltphat.inventory.backend.inventory.domain.repository.IInventoryRepository;
+import ltphat.inventory.backend.inventory.domain.repository.IInventoryTransactionRepository;
+import ltphat.inventory.backend.inventory.domain.repository.IStockImportRepository;
 import ltphat.inventory.backend.shared.api.exception.IdempotencyConflictException;
 import ltphat.inventory.backend.shared.security.CustomUserDetails;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,15 +23,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class StockImportServiceImpl implements StockImportService {
+public class StockImportServiceImpl implements IStockImportService {
 
-    private final StockImportRepository stockImportRepository;
-    private final InventoryRepository inventoryRepository;
-    private final InventoryTransactionRepository inventoryTransactionRepository;
+    private final IStockImportRepository stockImportRepository;
+    private final IInventoryRepository inventoryRepository;
+    private final IInventoryTransactionRepository inventoryTransactionRepository;
+        private final InventoryApplicationMapper inventoryApplicationMapper;
 
     @Override
     @Transactional
@@ -116,24 +116,6 @@ public class StockImportServiceImpl implements StockImportService {
         savedImport.setItems(importItems);
         stockImportRepository.save(savedImport); // Cascade update items
 
-        return mapToResponse(savedImport);
-    }
-
-    private StockImportResponse mapToResponse(StockImport stockImport) {
-        return StockImportResponse.builder()
-                .id(stockImport.getId())
-                .importNumber(stockImport.getImportNumber())
-                .supplierName(stockImport.getSupplierName())
-                .notes(stockImport.getNotes())
-                .importDate(stockImport.getImportDate())
-                .items(stockImport.getItems().stream()
-                        .map(item -> StockImportItemResponse.builder()
-                                .variantId(item.getVariantId())
-                                .quantity(item.getQuantity())
-                                .unitCostVnd(item.getUnitCostVnd())
-                                .lineTotalVnd(item.getLineTotalVnd())
-                                .build())
-                        .collect(Collectors.toList()))
-                .build();
+        return inventoryApplicationMapper.toStockImportResponse(savedImport);
     }
 }

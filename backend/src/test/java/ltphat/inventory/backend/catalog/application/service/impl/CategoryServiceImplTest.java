@@ -1,13 +1,13 @@
 package ltphat.inventory.backend.catalog.application.service.impl;
 
+import ltphat.inventory.backend.catalog.application.CatalogApplicationMapper;
 import ltphat.inventory.backend.catalog.application.dto.CategoryResponse;
 import ltphat.inventory.backend.catalog.application.dto.CreateCategoryRequest;
 import ltphat.inventory.backend.catalog.application.dto.UpdateCategoryRequest;
 import ltphat.inventory.backend.catalog.domain.exception.CategoryHasProductsException;
 import ltphat.inventory.backend.catalog.domain.exception.CategoryNotFoundException;
 import ltphat.inventory.backend.catalog.domain.model.Category;
-import ltphat.inventory.backend.catalog.domain.repository.CategoryRepository;
-import ltphat.inventory.backend.catalog.infrastructure.persistence.mapper.CategoryMapper;
+import ltphat.inventory.backend.catalog.domain.repository.ICategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,10 +32,10 @@ import static org.mockito.Mockito.when;
 class CategoryServiceImplTest {
 
     @Mock
-    private CategoryRepository categoryRepository;
+    private ICategoryRepository categoryRepository;
 
     @Mock
-    private CategoryMapper categoryMapper;
+    private CatalogApplicationMapper catalogApplicationMapper;
 
     @InjectMocks
     private CategoryServiceImpl categoryService;
@@ -67,7 +67,7 @@ class CategoryServiceImplTest {
         request.setDescription("Clothing");
 
         when(categoryRepository.save(any(Category.class))).thenReturn(category);
-        when(categoryMapper.toResponse(category)).thenReturn(response);
+        when(catalogApplicationMapper.toCategoryResponse(category)).thenReturn(response);
 
         CategoryResponse result = categoryService.createCategory(request);
 
@@ -93,7 +93,7 @@ class CategoryServiceImplTest {
 
         when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
         when(categoryRepository.save(any(Category.class))).thenReturn(category);
-        when(categoryMapper.toResponse(any(Category.class))).thenReturn(response);
+        when(catalogApplicationMapper.toCategoryResponse(any(Category.class))).thenReturn(response);
 
         CategoryResponse result = categoryService.updateCategory(10L, request);
 
@@ -104,7 +104,7 @@ class CategoryServiceImplTest {
     @Test
     void getCategory_shouldReturnMappedResponse_whenFound() {
         when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
-        when(categoryMapper.toResponse(category)).thenReturn(response);
+        when(catalogApplicationMapper.toCategoryResponse(category)).thenReturn(response);
 
         CategoryResponse result = categoryService.getCategory(10L);
 
@@ -124,7 +124,7 @@ class CategoryServiceImplTest {
     void listCategories_shouldHandleSortProvided() {
         Page<Category> categoryPage = new PageImpl<>(List.of(category));
         when(categoryRepository.findAll(any(Pageable.class))).thenReturn(categoryPage);
-        when(categoryMapper.toResponse(any(Category.class))).thenReturn(response);
+        when(catalogApplicationMapper.toCategoryResponse(any(Category.class))).thenReturn(response);
 
         Page<CategoryResponse> result = categoryService.listCategories(2, 20, "nameVn");
 
@@ -136,7 +136,7 @@ class CategoryServiceImplTest {
     void listCategories_shouldHandleSortNullAndPageLowerBound() {
         Page<Category> categoryPage = new PageImpl<>(List.of(category));
         when(categoryRepository.findAll(any(Pageable.class))).thenReturn(categoryPage);
-        when(categoryMapper.toResponse(any(Category.class))).thenReturn(response);
+        when(catalogApplicationMapper.toCategoryResponse(any(Category.class))).thenReturn(response);
 
         Page<CategoryResponse> result = categoryService.listCategories(0, 20, null);
 
@@ -147,7 +147,7 @@ class CategoryServiceImplTest {
     void listCategories_shouldHandleSortEmpty() {
         Page<Category> categoryPage = new PageImpl<>(List.of(category));
         when(categoryRepository.findAll(any(Pageable.class))).thenReturn(categoryPage);
-        when(categoryMapper.toResponse(any(Category.class))).thenReturn(response);
+        when(catalogApplicationMapper.toCategoryResponse(any(Category.class))).thenReturn(response);
 
         Page<CategoryResponse> result = categoryService.listCategories(1, 20, "");
 

@@ -1,24 +1,22 @@
 package ltphat.inventory.backend.catalog.application.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import ltphat.inventory.backend.catalog.application.CatalogApplicationMapper;
 import ltphat.inventory.backend.catalog.application.dto.CreateProductRequest;
 import ltphat.inventory.backend.catalog.application.dto.VariantDto;
 import ltphat.inventory.backend.catalog.application.dto.ProductResponse;
 import ltphat.inventory.backend.catalog.application.dto.VariantResponse;
-import ltphat.inventory.backend.catalog.application.service.ProductService;
+import ltphat.inventory.backend.catalog.application.service.IProductService;
 import ltphat.inventory.backend.catalog.domain.exception.DuplicateProductCodeException;
 import ltphat.inventory.backend.catalog.domain.exception.DuplicateVariantSkuException;
 import ltphat.inventory.backend.catalog.domain.exception.ProductNotFoundException;
 import ltphat.inventory.backend.catalog.domain.model.Product;
 import ltphat.inventory.backend.catalog.domain.model.ProductVariant;
-import ltphat.inventory.backend.catalog.domain.repository.ProductRepository;
-import ltphat.inventory.backend.catalog.domain.repository.ProductVariantRepository;
-import ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProduct;
-import ltphat.inventory.backend.catalog.infrastructure.persistence.repository.SpringDataProductRepository;
-import ltphat.inventory.backend.inventory.application.service.InventoryService;
+import ltphat.inventory.backend.catalog.domain.repository.IProductRepository;
+import ltphat.inventory.backend.catalog.domain.repository.IProductVariantRepository;
+import ltphat.inventory.backend.inventory.application.service.IInventoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,12 +29,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl implements IProductService {
 
-    private final ProductRepository productRepository;
-    private final ProductVariantRepository variantRepository;
-    private final InventoryService inventoryService;
-    private final SpringDataProductRepository springDataProductRepository; // temp for pagination until Specification is modeled domain-wide
+    private final IProductRepository productRepository;
+    private final IProductVariantRepository variantRepository;
+    private final IInventoryService inventoryService;
+    private final CatalogApplicationMapper catalogApplicationMapper;
 
     @Override
     @Transactional
@@ -75,44 +73,14 @@ public class ProductServiceImpl implements ProductService {
 
         inventoryService.initializeZeroStockForVariants(variantIds);
 
-        return mapToResponse(savedProduct);
+        return mapToDetailResponse(savedProduct);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponse> getProducts(Pageable pageable, Long categoryId, Boolean isActive, String search) {
-        Specification<JpaProduct> spec = Specification.where((root, query, cb) -> cb.conjunction());
-        if (categoryId != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("categoryId"), categoryId));
-        }
-        if (isActive != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("isActive"), isActive));
-        }
-        if (search != null && !search.trim().isEmpty()) {
-            String likePattern = "%" + search.toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.or(
-                    cb.like(cb.lower(root.get("productCode")), likePattern),
-                    cb.like(cb.lower(root.get("nameVn")), likePattern)
-            ));
-        }
-
-        return springDataProductRepository.findAll(spec, pageable).map(entity -> {
-            ProductResponse response = new ProductResponse();
-            response.setId(entity.getId());
-            response.setProductCode(entity.getProductCode());
-            response.setNameVn(entity.getNameVn());
-            response.setNameEn(entity.getNameEn());
-            response.setCategoryId(entity.getCategoryId());
-            response.setBasePriceVnd(entity.getBasePriceVnd());
-            response.setVatRate(entity.getVatRate());
-            response.setDescription(entity.getDescription());
-            response.setIsActive(entity.getIsActive());
-            response.setCreatedBy(entity.getCreatedBy());
-            response.setCreatedAt(entity.getCreatedAt());
-            response.setUpdatedAt(entity.getUpdatedAt());
-            response.setVariantCount(entity.getVariants() != null ? entity.getVariants().size() : 0);
-            return response;
-        });
+        return productRepository.findAll(pageable, categoryId, isActive, search)
+                .map(catalogApplicationMapper::toProductSummaryResponse);
     }
 
     @Override
@@ -120,7 +88,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
-        return mapToResponse(product);
+        return mapToDetailResponse(product);
     }
 
     @Override
@@ -152,7 +120,7 @@ public class ProductServiceImpl implements ProductService {
             .collect(Collectors.toList());
         inventoryService.initializeZeroStockForVariants(variantIds);
 
-        return mapToResponse(updated);
+        return mapToDetailResponse(updated);
     }
 
     @Override
@@ -220,43 +188,20 @@ public class ProductServiceImpl implements ProductService {
         return variants;
     }
     
-    private ProductResponse mapToResponse(Product product) {
-        ProductResponse res = new ProductResponse();
-        res.setId(product.getId());
-        res.setProductCode(product.getProductCode());
-        res.setNameVn(product.getNameVn());
-        res.setNameEn(product.getNameEn());
-        res.setCategoryId(product.getCategoryId());
-        res.setBasePriceVnd(product.getBasePriceVnd());
-        res.setVatRate(product.getVatRate());
-        res.setDescription(product.getDescription());
-        res.setIsActive(product.getIsActive());
-        res.setCreatedBy(product.getCreatedBy());
-        res.setCreatedAt(product.getCreatedAt());
-        res.setUpdatedAt(product.getUpdatedAt());
-        
-        if (product.getVariants() != null) {
-            List<VariantResponse> vResList = product.getVariants().stream().map(v -> {
-                VariantResponse vr = new VariantResponse();
-                vr.setId(v.getId());
-                vr.setSku(v.getSku());
-                vr.setSize(v.getSize());
-                vr.setColor(v.getColor());
-                vr.setDesignStyle(v.getDesignStyle());
-                vr.setVariantPriceVnd(v.getVariantPriceVnd());
-                vr.setBarcode(v.getBarcode());
-                vr.setLowStockThreshold(v.getLowStockThreshold());
-                vr.setIsActive(v.getIsActive());
-                vr.setCreatedAt(v.getCreatedAt());
-                vr.setUpdatedAt(v.getUpdatedAt());
-                Integer qty = inventoryService.getCurrentQuantity(v.getId());
-                vr.setCurrentQuantity(qty);
-                int threshold = v.getLowStockThreshold() != null ? v.getLowStockThreshold() : 0;
-                vr.setLowStock(qty != null && qty < threshold);
-                return vr;
-            }).collect(Collectors.toList());
-            res.setVariants(vResList);
+    private ProductResponse mapToDetailResponse(Product product) {
+        ProductResponse response = catalogApplicationMapper.toProductDetailResponse(product);
+        if (response.getVariants() == null) {
+            return response;
         }
-        return res;
+
+        for (VariantResponse variantResponse : response.getVariants()) {
+            Integer qty = inventoryService.getCurrentQuantity(variantResponse.getId());
+            variantResponse.setCurrentQuantity(qty);
+            int threshold = variantResponse.getLowStockThreshold() != null
+                    ? variantResponse.getLowStockThreshold()
+                    : 0;
+            variantResponse.setLowStock(qty != null && qty < threshold);
+        }
+        return response;
     }
 }

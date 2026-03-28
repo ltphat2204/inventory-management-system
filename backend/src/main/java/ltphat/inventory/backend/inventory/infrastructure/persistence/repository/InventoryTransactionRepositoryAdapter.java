@@ -2,14 +2,14 @@ package ltphat.inventory.backend.inventory.infrastructure.persistence.repository
 
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.inventory.domain.model.InventoryTransaction;
-import ltphat.inventory.backend.inventory.domain.repository.InventoryTransactionRepository;
+import ltphat.inventory.backend.inventory.domain.repository.IInventoryTransactionRepository;
 import ltphat.inventory.backend.inventory.infrastructure.persistence.entity.JpaInventoryTransaction;
 import ltphat.inventory.backend.inventory.infrastructure.persistence.mapper.InventoryTransactionMapper;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class InventoryTransactionRepositoryImpl implements InventoryTransactionRepository {
+public class InventoryTransactionRepositoryAdapter implements IInventoryTransactionRepository {
 
     private final SpringDataInventoryTransactionRepository springDataRepository;
     private final InventoryTransactionMapper mapper;

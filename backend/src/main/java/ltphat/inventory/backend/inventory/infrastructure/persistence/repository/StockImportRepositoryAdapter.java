@@ -2,14 +2,14 @@ package ltphat.inventory.backend.inventory.infrastructure.persistence.repository
 
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.inventory.domain.model.StockImport;
-import ltphat.inventory.backend.inventory.domain.repository.StockImportRepository;
+import ltphat.inventory.backend.inventory.domain.repository.IStockImportRepository;
 import ltphat.inventory.backend.inventory.infrastructure.persistence.entity.JpaStockImport;
 import ltphat.inventory.backend.inventory.infrastructure.persistence.mapper.StockImportMapper;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class StockImportRepositoryImpl implements StockImportRepository {
+public class StockImportRepositoryAdapter implements IStockImportRepository {
 
     private final SpringDataStockImportRepository springDataRepository;
     private final StockImportMapper mapper;

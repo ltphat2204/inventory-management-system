@@ -32,7 +32,7 @@ class ProductVariantRepositoryImplTest {
     private ProductMapper mapper;
 
     @InjectMocks
-    private ProductVariantRepositoryImpl repository;
+    private ProductVariantRepositoryAdapter repository;
 
     @Test
     void save_shouldThrow_whenProductNotFound() {

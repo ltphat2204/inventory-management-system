@@ -2,6 +2,6 @@ package ltphat.inventory.backend.inventory.domain.repository;
 
 import ltphat.inventory.backend.inventory.domain.model.InventoryTransaction;
 
-public interface InventoryTransactionRepository {
+public interface IInventoryTransactionRepository {
     InventoryTransaction save(InventoryTransaction transaction);
 }

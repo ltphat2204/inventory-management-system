@@ -5,7 +5,7 @@ import ltphat.inventory.backend.catalog.application.dto.CreateCategoryRequest;
 import ltphat.inventory.backend.catalog.application.dto.UpdateCategoryRequest;
 import org.springframework.data.domain.Page;
 
-public interface CategoryService {
+public interface ICategoryService {
     CategoryResponse createCategory(CreateCategoryRequest request);
     CategoryResponse updateCategory(Long id, UpdateCategoryRequest request);
     CategoryResponse getCategory(Long id);
