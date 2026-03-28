@@ -2,9 +2,12 @@ package ltphat.inventory.backend.inventory.infrastructure.persistence.repository
 
 import jakarta.persistence.LockModeType;
 import ltphat.inventory.backend.inventory.infrastructure.persistence.entity.JpaInventory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,4 +22,23 @@ public interface SpringDataInventoryRepository extends JpaRepository<JpaInventor
     Optional<JpaInventory> findByVariantIdWithLock(Long variantId);
 
     List<JpaInventory> findByVariantIdIn(List<Long> variantIds);
+
+        @Query("""
+                        SELECT
+                                v.id as variantId,
+                                v.sku as variantSku,
+                                p.id as productId,
+                                COALESCE(p.nameVn, p.nameEn) as productName,
+                                i.currentQuantity as currentQuantity,
+                                v.lowStockThreshold as lowStockThreshold
+                        FROM JpaInventory i
+                        JOIN ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant v ON v.id = i.variantId
+                        JOIN v.product p
+                        WHERE (:productId IS NULL OR p.id = :productId)
+                            AND (:lowStockOnly IS NULL OR :lowStockOnly = FALSE OR i.currentQuantity < COALESCE(v.lowStockThreshold, 0))
+                        """)
+        Page<InventoryOverviewProjection> findInventoryOverview(
+                        @Param("lowStockOnly") Boolean lowStockOnly,
+                        @Param("productId") Long productId,
+                        Pageable pageable);
 }
