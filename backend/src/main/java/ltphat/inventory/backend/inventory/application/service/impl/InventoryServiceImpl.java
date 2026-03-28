@@ -23,7 +23,8 @@ public class InventoryServiceImpl implements InventoryService {
         if (inventoryRepository.findByVariantId(variantId).isEmpty()) {
             inventoryRepository.save(Inventory.builder()
                     .variantId(variantId)
-                    .quantity(0)
+                    .currentQuantity(0)
+                    .totalValueVnd(0L)
                     .createdAt(ZonedDateTime.now())
                     .updatedAt(ZonedDateTime.now())
                     .build());
@@ -38,7 +39,8 @@ public class InventoryServiceImpl implements InventoryService {
                 .filter(id -> inventoryRepository.findByVariantId(id).isEmpty())
                 .map(id -> Inventory.builder()
                         .variantId(id)
-                        .quantity(0)
+                        .currentQuantity(0)
+                        .totalValueVnd(0L)
                         .createdAt(now)
                         .updatedAt(now)
                         .build())
@@ -53,7 +55,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional(readOnly = true)
     public Integer getCurrentQuantity(Long variantId) {
         return inventoryRepository.findByVariantId(variantId)
-                .map(Inventory::getQuantity)
+                .map(Inventory::getCurrentQuantity)
                 .orElse(0);
     }
 }

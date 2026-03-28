@@ -40,6 +40,11 @@ public class InventoryRepositoryImpl implements InventoryRepository {
     }
 
     @Override
+    public Optional<Inventory> findByVariantIdWithLock(Long variantId) {
+        return springDataRepository.findByVariantIdWithLock(variantId).map(mapper::toDomain);
+    }
+
+    @Override
     public List<Inventory> findByVariantIdIn(List<Long> variantIds) {
         return springDataRepository.findByVariantIdIn(variantIds).stream()
                 .map(mapper::toDomain)

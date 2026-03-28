@@ -24,8 +24,15 @@ public class JpaInventory {
     @Column(name = "variant_id", nullable = false, unique = true)
     private Long variantId;
 
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    @Column(name = "current_quantity", nullable = false)
+    private Integer currentQuantity;
+
+    @Column(name = "total_value_vnd", nullable = false)
+    private Long totalValueVnd;
+
+    @Version
+    @Column(name = "version")
+    private Integer version;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
@@ -38,7 +45,8 @@ public class JpaInventory {
         ZonedDateTime now = ZonedDateTime.now();
         if (createdAt == null) createdAt = now;
         if (updatedAt == null) updatedAt = now;
-        if (quantity == null) quantity = 0;
+        if (currentQuantity == null) currentQuantity = 0;
+        if (totalValueVnd == null) totalValueVnd = 0L;
     }
 
     @PreUpdate

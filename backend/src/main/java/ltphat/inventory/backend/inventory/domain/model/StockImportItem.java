@@ -5,18 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Inventory {
+public class StockImportItem {
     private Long id;
     private Long variantId;
-    private Integer currentQuantity;
-    private Long totalValueVnd;
-    private Integer version;
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
+    private Integer quantity;
+    private Long unitCostVnd;
+    private Long lineTotalVnd;
 }

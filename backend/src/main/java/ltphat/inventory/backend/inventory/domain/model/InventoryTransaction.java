@@ -11,12 +11,15 @@ import java.time.ZonedDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Inventory {
+public class InventoryTransaction {
     private Long id;
     private Long variantId;
-    private Integer currentQuantity;
-    private Long totalValueVnd;
-    private Integer version;
+    private MovementType movementType;
+    private Integer quantityChanged;
+    private Integer previousQuantity;
+    private Integer newQuantity;
+    private String reason;
+    private Long referenceId; // The ID of the StockImport, Sale or Adjustment
+    private Long userId;
     private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
 }
