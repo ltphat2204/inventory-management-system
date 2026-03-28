@@ -2,7 +2,7 @@ package ltphat.inventory.backend.catalog.infrastructure.persistence;
 
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.catalog.domain.model.Category;
-import ltphat.inventory.backend.catalog.domain.repository.CategoryRepository;
+import ltphat.inventory.backend.catalog.domain.repository.ICategoryRepository;
 import ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaCategory;
 import ltphat.inventory.backend.catalog.infrastructure.persistence.mapper.CategoryMapper;
 import ltphat.inventory.backend.catalog.infrastructure.persistence.repository.SpringDataCategoryRepository;
@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class CategoryRepositoryImpl implements CategoryRepository {
+public class CategoryRepositoryAdapter implements ICategoryRepository {
 
     private final SpringDataCategoryRepository springDataCategoryRepository;
     private final CategoryMapper categoryMapper;

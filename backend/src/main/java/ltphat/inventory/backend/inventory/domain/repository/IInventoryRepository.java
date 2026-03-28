@@ -4,7 +4,7 @@ import ltphat.inventory.backend.inventory.domain.model.Inventory;
 import java.util.Optional;
 import java.util.List;
 
-public interface InventoryRepository {
+public interface IInventoryRepository {
     Inventory save(Inventory inventory);
     List<Inventory> saveAll(List<Inventory> inventories);
     Optional<Inventory> findByVariantId(Long variantId);

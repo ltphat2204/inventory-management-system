@@ -5,7 +5,7 @@ import ltphat.inventory.backend.catalog.application.dto.ProductResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-public interface ProductService {
+public interface IProductService {
     ProductResponse createProduct(CreateProductRequest request, Long authenticatedUserId);
     Page<ProductResponse> getProducts(Pageable pageable, Long categoryId, Boolean isActive, String search);
     ProductResponse getProductById(Long id);

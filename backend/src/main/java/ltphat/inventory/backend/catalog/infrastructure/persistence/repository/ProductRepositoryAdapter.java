@@ -2,10 +2,13 @@ package ltphat.inventory.backend.catalog.infrastructure.persistence.repository;
 
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.catalog.domain.model.Product;
-import ltphat.inventory.backend.catalog.domain.repository.ProductRepository;
+import ltphat.inventory.backend.catalog.domain.repository.IProductRepository;
 import ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProduct;
 import ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant;
 import ltphat.inventory.backend.catalog.infrastructure.persistence.mapper.ProductMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
-public class ProductRepositoryImpl implements ProductRepository {
+public class ProductRepositoryAdapter implements IProductRepository {
 
     private final SpringDataProductRepository springDataRepository;
     private final ProductMapper mapper;
@@ -45,6 +48,26 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public boolean existsByProductCode(String productCode) {
         return springDataRepository.existsByProductCode(productCode);
+    }
+
+    @Override
+    public Page<Product> findAll(Pageable pageable, Long categoryId, Boolean isActive, String search) {
+        Specification<JpaProduct> spec = Specification.where((root, query, cb) -> cb.conjunction());
+        if (categoryId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("categoryId"), categoryId));
+        }
+        if (isActive != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("isActive"), isActive));
+        }
+        if (search != null && !search.trim().isEmpty()) {
+            String likePattern = "%" + search.toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.or(
+                    cb.like(cb.lower(root.get("productCode")), likePattern),
+                    cb.like(cb.lower(root.get("nameVn")), likePattern)
+            ));
+        }
+
+        return springDataRepository.findAll(spec, pageable).map(this::mapToDomainWithVariants);
     }
 
     private Product mapToDomainWithVariants(JpaProduct entity) {

@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.inventory.application.dto.StockImportRequest;
 import ltphat.inventory.backend.inventory.application.dto.StockImportResponse;
-import ltphat.inventory.backend.inventory.application.service.StockImportService;
+import ltphat.inventory.backend.inventory.application.service.IStockImportService;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class StockImportController {
 
-    private final StockImportService stockImportService;
+    private final IStockImportService stockImportService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")

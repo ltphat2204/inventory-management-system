@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.catalog.application.dto.VariantDto;
 import ltphat.inventory.backend.catalog.application.dto.VariantResponse;
-import ltphat.inventory.backend.catalog.application.service.ProductVariantService;
+import ltphat.inventory.backend.catalog.application.service.IProductVariantService;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductVariantController {
 
-    private final ProductVariantService variantService;
+    private final IProductVariantService variantService;
 
     @GetMapping("/products/{productId}/variants")
     public ResponseEntity<ApiResponse<List<VariantResponse>>> getProductVariants(

@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
-public interface CategoryRepository {
+public interface ICategoryRepository {
     Category save(Category category);
     Optional<Category> findById(Long id);
     Page<Category> findAll(Pageable pageable);

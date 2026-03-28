@@ -1,9 +1,9 @@
 package ltphat.inventory.backend.inventory.application.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import ltphat.inventory.backend.inventory.application.service.InventoryService;
+import ltphat.inventory.backend.inventory.application.service.IInventoryService;
 import ltphat.inventory.backend.inventory.domain.model.Inventory;
-import ltphat.inventory.backend.inventory.domain.repository.InventoryRepository;
+import ltphat.inventory.backend.inventory.domain.repository.IInventoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class InventoryServiceImpl implements InventoryService {
+public class InventoryServiceImpl implements IInventoryService {
 
-    private final InventoryRepository inventoryRepository;
+    private final IInventoryRepository inventoryRepository;
 
     @Override
     @Transactional

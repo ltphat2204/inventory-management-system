@@ -3,7 +3,7 @@ package ltphat.inventory.backend.catalog.presentation.controller;
 import ltphat.inventory.backend.catalog.application.dto.CategoryResponse;
 import ltphat.inventory.backend.catalog.application.dto.CreateCategoryRequest;
 import ltphat.inventory.backend.catalog.application.dto.UpdateCategoryRequest;
-import ltphat.inventory.backend.catalog.application.service.CategoryService;
+import ltphat.inventory.backend.catalog.application.service.ICategoryService;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 class CategoryControllerTest {
 
     @Mock
-    private CategoryService categoryService;
+    private ICategoryService categoryService;
 
     @InjectMocks
     private CategoryController categoryController;

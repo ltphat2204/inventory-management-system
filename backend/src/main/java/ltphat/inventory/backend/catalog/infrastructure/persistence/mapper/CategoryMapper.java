@@ -8,5 +8,4 @@ import org.mapstruct.Mapper;
 public interface CategoryMapper {
     Category toDomain(JpaCategory entity);
     JpaCategory toEntity(Category domain);
-    ltphat.inventory.backend.catalog.application.dto.CategoryResponse toResponse(Category domain);
 }

@@ -1,19 +1,18 @@
 package ltphat.inventory.backend.catalog.application.service.impl;
 
+import ltphat.inventory.backend.catalog.application.CatalogApplicationMapper;
 import ltphat.inventory.backend.catalog.application.dto.CreateProductRequest;
 import ltphat.inventory.backend.catalog.application.dto.ProductResponse;
 import ltphat.inventory.backend.catalog.application.dto.VariantDto;
+import ltphat.inventory.backend.catalog.application.dto.VariantResponse;
 import ltphat.inventory.backend.catalog.domain.exception.DuplicateProductCodeException;
 import ltphat.inventory.backend.catalog.domain.exception.DuplicateVariantSkuException;
 import ltphat.inventory.backend.catalog.domain.exception.ProductNotFoundException;
 import ltphat.inventory.backend.catalog.domain.model.Product;
 import ltphat.inventory.backend.catalog.domain.model.ProductVariant;
-import ltphat.inventory.backend.catalog.domain.repository.ProductRepository;
-import ltphat.inventory.backend.catalog.domain.repository.ProductVariantRepository;
-import ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProduct;
-import ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant;
-import ltphat.inventory.backend.catalog.infrastructure.persistence.repository.SpringDataProductRepository;
-import ltphat.inventory.backend.inventory.application.service.InventoryService;
+import ltphat.inventory.backend.catalog.domain.repository.IProductRepository;
+import ltphat.inventory.backend.catalog.domain.repository.IProductVariantRepository;
+import ltphat.inventory.backend.inventory.application.service.IInventoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,14 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -48,22 +39,22 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceImplTest {
 
     @Mock
-    private ProductRepository productRepository;
+    private IProductRepository productRepository;
 
     @Mock
-    private ProductVariantRepository variantRepository;
+    private IProductVariantRepository variantRepository;
 
     @Mock
-    private InventoryService inventoryService;
+    private IInventoryService inventoryService;
 
     @Mock
-    private SpringDataProductRepository springDataProductRepository;
+    private CatalogApplicationMapper catalogApplicationMapper;
 
     @InjectMocks
     private ProductServiceImpl productService;
@@ -98,6 +89,11 @@ class ProductServiceImplTest {
         second.setLowStockThreshold(8);
 
         createRequest.setVariants(List.of(first, second));
+
+        lenient().when(catalogApplicationMapper.toProductDetailResponse(any(Product.class)))
+            .thenAnswer(invocation -> toProductDetailResponse(invocation.getArgument(0)));
+        lenient().when(catalogApplicationMapper.toProductSummaryResponse(any(Product.class)))
+            .thenAnswer(invocation -> toProductSummaryResponse(invocation.getArgument(0)));
     }
 
     @Test
@@ -178,7 +174,7 @@ class ProductServiceImplTest {
     @Test
     void getProducts_shouldReturnPage_whenNoFilters() {
         Pageable pageable = PageRequest.of(0, 10);
-        JpaProduct withNullVariants = JpaProduct.builder()
+        Product withNullVariants = Product.builder()
                 .id(1L)
                 .productCode("P1")
                 .nameVn("One")
@@ -187,18 +183,18 @@ class ProductServiceImplTest {
                 .variants(null)
                 .build();
 
-        JpaProduct withTwoVariants = JpaProduct.builder()
+        ProductVariant variantA = ProductVariant.builder().id(10L).build();
+        ProductVariant variantB = ProductVariant.builder().id(11L).build();
+        Product withTwoVariants = Product.builder()
                 .id(2L)
                 .productCode("P2")
                 .nameVn("Two")
                 .basePriceVnd(200L)
                 .isActive(true)
-                .variants(new ArrayList<>())
+            .variants(new ArrayList<>(List.of(variantA, variantB)))
                 .build();
-        withTwoVariants.getVariants().add(JpaProductVariant.builder().id(10L).build());
-        withTwoVariants.getVariants().add(JpaProductVariant.builder().id(11L).build());
 
-        when(springDataProductRepository.findAll(any(Specification.class), eq(pageable)))
+        when(productRepository.findAll(eq(pageable), eq(null), eq(null), eq(null)))
                 .thenReturn(new PageImpl<>(List.of(withNullVariants, withTwoVariants), pageable, 2));
 
         Page<ProductResponse> responses = productService.getProducts(pageable, null, null, null);
@@ -206,59 +202,28 @@ class ProductServiceImplTest {
         assertThat(responses.getTotalElements()).isEqualTo(2);
         assertThat(responses.getContent().get(0).getVariantCount()).isEqualTo(0);
         assertThat(responses.getContent().get(1).getVariantCount()).isEqualTo(2);
+        verify(productRepository).findAll(pageable, null, null, null);
     }
 
     @Test
     void getProducts_shouldHandleAllFilterBranches() {
         Pageable pageable = PageRequest.of(0, 10);
-        when(springDataProductRepository.findAll(any(Specification.class), eq(pageable)))
+        when(productRepository.findAll(any(Pageable.class), any(), any(), any()))
                 .thenReturn(Page.empty(pageable));
 
         productService.getProducts(pageable, 10L, true, "shirt");
         productService.getProducts(pageable, null, false, "   ");
 
-        verify(springDataProductRepository, times(2)).findAll(any(Specification.class), eq(pageable));
+        verify(productRepository, times(2)).findAll(any(Pageable.class), any(), any(), any());
     }
 
     @Test
-    void getProducts_shouldBuildSearchPredicate_whenSearchProvided() {
+    void getProducts_shouldPassSearchFilterToRepository() {
         Pageable pageable = PageRequest.of(0, 10);
-        ArgumentCaptor<Specification<JpaProduct>> specCaptor = ArgumentCaptor.forClass(Specification.class);
-        when(springDataProductRepository.findAll(specCaptor.capture(), eq(pageable))).thenReturn(Page.empty(pageable));
+        when(productRepository.findAll(pageable, null, null, "shirt")).thenReturn(Page.empty(pageable));
 
         productService.getProducts(pageable, null, null, "shirt");
-
-        @SuppressWarnings("unchecked")
-        Root<JpaProduct> root = (Root<JpaProduct>) mock(Root.class);
-        @SuppressWarnings("unchecked")
-        Path<Object> productCodePath = (Path<Object>) mock(Path.class);
-        @SuppressWarnings("unchecked")
-        Path<Object> nameVnPath = (Path<Object>) mock(Path.class);
-        @SuppressWarnings("unchecked")
-        Expression<String> lowerCode = (Expression<String>) mock(Expression.class);
-        @SuppressWarnings("unchecked")
-        Expression<String> lowerName = (Expression<String>) mock(Expression.class);
-        CriteriaBuilder cb = mock(CriteriaBuilder.class);
-        CriteriaQuery<?> query = mock(CriteriaQuery.class);
-        Predicate p1 = mock(Predicate.class);
-        Predicate p2 = mock(Predicate.class);
-        Predicate pOr = mock(Predicate.class);
-        Predicate pConjunction = mock(Predicate.class);
-
-        when(root.get("productCode")).thenReturn(productCodePath);
-        when(root.get("nameVn")).thenReturn(nameVnPath);
-        when(cb.conjunction()).thenReturn(pConjunction);
-        when(cb.lower(any(Expression.class))).thenReturn(lowerCode, lowerName);
-        when(cb.like(lowerCode, "%shirt%")).thenReturn(p1);
-        when(cb.like(lowerName, "%shirt%")).thenReturn(p2);
-        when(cb.or(p1, p2)).thenReturn(pOr);
-        when(cb.and(any(Predicate.class), any(Predicate.class))).thenReturn(pOr);
-
-        specCaptor.getValue().toPredicate(root, query, cb);
-
-        verify(cb).like(lowerCode, "%shirt%");
-        verify(cb).like(lowerName, "%shirt%");
-        verify(cb).or(p1, p2);
+        verify(productRepository).findAll(pageable, null, null, "shirt");
     }
 
     @Test
@@ -528,5 +493,49 @@ class ProductServiceImplTest {
         assertThatThrownBy(() -> productService.deleteProduct(123L))
                 .isInstanceOf(ProductNotFoundException.class)
                 .hasMessage("Product not found with id: 123");
+    }
+
+    private ProductResponse toProductSummaryResponse(Product product) {
+        ProductResponse response = new ProductResponse();
+        response.setId(product.getId());
+        response.setProductCode(product.getProductCode());
+        response.setNameVn(product.getNameVn());
+        response.setNameEn(product.getNameEn());
+        response.setCategoryId(product.getCategoryId());
+        response.setBasePriceVnd(product.getBasePriceVnd());
+        response.setVatRate(product.getVatRate());
+        response.setDescription(product.getDescription());
+        response.setIsActive(product.getIsActive());
+        response.setCreatedBy(product.getCreatedBy());
+        response.setCreatedAt(product.getCreatedAt());
+        response.setUpdatedAt(product.getUpdatedAt());
+        response.setVariantCount(product.getVariants() != null ? product.getVariants().size() : 0);
+        return response;
+    }
+
+    private ProductResponse toProductDetailResponse(Product product) {
+        ProductResponse response = toProductSummaryResponse(product);
+        if (product.getVariants() == null) {
+            response.setVariants(null);
+            return response;
+        }
+
+        List<VariantResponse> variants = product.getVariants().stream().map(variant -> {
+            VariantResponse variantResponse = new VariantResponse();
+            variantResponse.setId(variant.getId());
+            variantResponse.setSku(variant.getSku());
+            variantResponse.setSize(variant.getSize());
+            variantResponse.setColor(variant.getColor());
+            variantResponse.setDesignStyle(variant.getDesignStyle());
+            variantResponse.setVariantPriceVnd(variant.getVariantPriceVnd());
+            variantResponse.setBarcode(variant.getBarcode());
+            variantResponse.setLowStockThreshold(variant.getLowStockThreshold());
+            variantResponse.setIsActive(variant.getIsActive());
+            variantResponse.setCreatedAt(variant.getCreatedAt());
+            variantResponse.setUpdatedAt(variant.getUpdatedAt());
+            return variantResponse;
+        }).toList();
+        response.setVariants(variants);
+        return response;
     }
 }

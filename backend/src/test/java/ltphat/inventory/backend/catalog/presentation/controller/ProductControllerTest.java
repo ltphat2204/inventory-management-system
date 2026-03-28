@@ -2,7 +2,7 @@ package ltphat.inventory.backend.catalog.presentation.controller;
 
 import ltphat.inventory.backend.catalog.application.dto.CreateProductRequest;
 import ltphat.inventory.backend.catalog.application.dto.ProductResponse;
-import ltphat.inventory.backend.catalog.application.service.ProductService;
+import ltphat.inventory.backend.catalog.application.service.IProductService;
 import ltphat.inventory.backend.iam.domain.model.Role;
 import ltphat.inventory.backend.iam.domain.model.User;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 class ProductControllerTest {
 
     @Mock
-    private ProductService productService;
+    private IProductService productService;
 
     @InjectMocks
     private ProductController productController;

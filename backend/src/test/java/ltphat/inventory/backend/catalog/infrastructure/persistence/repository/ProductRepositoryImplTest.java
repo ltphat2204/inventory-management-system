@@ -30,7 +30,7 @@ class ProductRepositoryImplTest {
     private ProductMapper mapper;
 
     @InjectMocks
-    private ProductRepositoryImpl repository;
+    private ProductRepositoryAdapter repository;
 
     @Test
     void save_shouldMapVariants_whenDomainHasVariants() {

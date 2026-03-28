@@ -1,17 +1,18 @@
 package ltphat.inventory.backend.catalog.application.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import ltphat.inventory.backend.catalog.application.CatalogApplicationMapper;
 import ltphat.inventory.backend.catalog.application.dto.VariantDto;
 import ltphat.inventory.backend.catalog.application.dto.VariantResponse;
-import ltphat.inventory.backend.catalog.application.service.ProductVariantService;
+import ltphat.inventory.backend.catalog.application.service.IProductVariantService;
 import ltphat.inventory.backend.catalog.domain.exception.DuplicateVariantSkuException;
 import ltphat.inventory.backend.catalog.domain.exception.ProductNotFoundException;
 import ltphat.inventory.backend.catalog.domain.exception.VariantNotFoundException;
 import ltphat.inventory.backend.catalog.domain.model.Product;
 import ltphat.inventory.backend.catalog.domain.model.ProductVariant;
-import ltphat.inventory.backend.catalog.domain.repository.ProductRepository;
-import ltphat.inventory.backend.catalog.domain.repository.ProductVariantRepository;
-import ltphat.inventory.backend.inventory.application.service.InventoryService;
+import ltphat.inventory.backend.catalog.domain.repository.IProductRepository;
+import ltphat.inventory.backend.catalog.domain.repository.IProductVariantRepository;
+import ltphat.inventory.backend.inventory.application.service.IInventoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,11 +22,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ProductVariantServiceImpl implements ProductVariantService {
+public class ProductVariantServiceImpl implements IProductVariantService {
 
-    private final ProductVariantRepository variantRepository;
-    private final ProductRepository productRepository;
-    private final InventoryService inventoryService;
+    private final IProductVariantRepository variantRepository;
+    private final IProductRepository productRepository;
+    private final IInventoryService inventoryService;
+    private final CatalogApplicationMapper catalogApplicationMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -36,7 +38,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
 
         return variantRepository.findByProductId(productId).stream()
                 .map(v -> {
-                    VariantResponse vr = mapToResponse(v);
+                    VariantResponse vr = catalogApplicationMapper.toVariantResponse(v);
                     if (includeStock) {
                         Integer qty = inventoryService.getCurrentQuantity(v.getId());
                         vr.setCurrentQuantity(qty);
@@ -77,7 +79,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
         ProductVariant saved = variantRepository.save(newVariant);
         inventoryService.initializeZeroStock(saved.getId());
 
-        VariantResponse response = mapToResponse(saved);
+        VariantResponse response = catalogApplicationMapper.toVariantResponse(saved);
         response.setCurrentQuantity(0);
         return response;
     }
@@ -92,7 +94,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
             throw new IllegalArgumentException("Variant does not belong to the specified product.");
         }
 
-        VariantResponse response = mapToResponse(variant);
+        VariantResponse response = catalogApplicationMapper.toVariantResponse(variant);
         response.setCurrentQuantity(inventoryService.getCurrentQuantity(variant.getId()));
         return response;
     }
@@ -121,7 +123,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
         
         ProductVariant saved = variantRepository.save(existing);
         
-        VariantResponse response = mapToResponse(saved);
+        VariantResponse response = catalogApplicationMapper.toVariantResponse(saved);
         response.setCurrentQuantity(inventoryService.getCurrentQuantity(variantId));
         return response;
     }
@@ -151,7 +153,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
         ProductVariant variant = variantRepository.findByBarcode(barcode)
                 .orElseThrow(() -> new VariantNotFoundException("No variant found with barcode: " + barcode));
 
-        VariantResponse response = mapToResponse(variant);
+        VariantResponse response = catalogApplicationMapper.toVariantResponse(variant);
         Integer qty = inventoryService.getCurrentQuantity(variant.getId());
         response.setCurrentQuantity(qty);
         int threshold = variant.getLowStockThreshold() != null ? variant.getLowStockThreshold() : 0;
@@ -169,19 +171,4 @@ public class ProductVariantServiceImpl implements ProductVariantService {
         return sku.toString();
     }
 
-    private VariantResponse mapToResponse(ProductVariant variant) {
-        VariantResponse vr = new VariantResponse();
-        vr.setId(variant.getId());
-        vr.setSku(variant.getSku());
-        vr.setSize(variant.getSize());
-        vr.setColor(variant.getColor());
-        vr.setDesignStyle(variant.getDesignStyle());
-        vr.setVariantPriceVnd(variant.getVariantPriceVnd());
-        vr.setBarcode(variant.getBarcode());
-        vr.setLowStockThreshold(variant.getLowStockThreshold());
-        vr.setIsActive(variant.getIsActive());
-        vr.setCreatedAt(variant.getCreatedAt());
-        vr.setUpdatedAt(variant.getUpdatedAt());
-        return vr;
-    }
 }

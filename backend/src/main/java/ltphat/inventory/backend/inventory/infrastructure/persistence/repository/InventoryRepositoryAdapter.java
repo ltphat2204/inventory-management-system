@@ -2,7 +2,7 @@ package ltphat.inventory.backend.inventory.infrastructure.persistence.repository
 
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.inventory.domain.model.Inventory;
-import ltphat.inventory.backend.inventory.domain.repository.InventoryRepository;
+import ltphat.inventory.backend.inventory.domain.repository.IInventoryRepository;
 import ltphat.inventory.backend.inventory.infrastructure.persistence.entity.JpaInventory;
 import ltphat.inventory.backend.inventory.infrastructure.persistence.mapper.InventoryMapper;
 import org.springframework.stereotype.Repository;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
-public class InventoryRepositoryImpl implements InventoryRepository {
+public class InventoryRepositoryAdapter implements IInventoryRepository {
 
     private final SpringDataInventoryRepository springDataRepository;
     private final InventoryMapper mapper;

@@ -2,7 +2,7 @@ package ltphat.inventory.backend.catalog.presentation.controller;
 
 import ltphat.inventory.backend.catalog.application.dto.VariantDto;
 import ltphat.inventory.backend.catalog.application.dto.VariantResponse;
-import ltphat.inventory.backend.catalog.application.service.ProductVariantService;
+import ltphat.inventory.backend.catalog.application.service.IProductVariantService;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 class ProductVariantControllerTest {
 
     @Mock
-    private ProductVariantService variantService;
+    private IProductVariantService variantService;
 
     @InjectMocks
     private ProductVariantController controller;

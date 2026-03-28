@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.catalog.application.dto.CreateProductRequest;
 import ltphat.inventory.backend.catalog.application.dto.ProductResponse;
-import ltphat.inventory.backend.catalog.application.service.ProductService;
+import ltphat.inventory.backend.catalog.application.service.IProductService;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import ltphat.inventory.backend.shared.security.CustomUserDetails;
 import org.springframework.data.domain.Page;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ProductController {
 
-    private final ProductService productService;
+    private final IProductService productService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ProductResponse>>> getProducts(

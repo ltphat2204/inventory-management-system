@@ -2,7 +2,7 @@ package ltphat.inventory.backend.catalog.infrastructure.persistence.repository;
 
 import lombok.RequiredArgsConstructor;
 import ltphat.inventory.backend.catalog.domain.model.ProductVariant;
-import ltphat.inventory.backend.catalog.domain.repository.ProductVariantRepository;
+import ltphat.inventory.backend.catalog.domain.repository.IProductVariantRepository;
 import ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProduct;
 import ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant;
 import ltphat.inventory.backend.catalog.infrastructure.persistence.mapper.ProductMapper;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
-public class ProductVariantRepositoryImpl implements ProductVariantRepository {
+public class ProductVariantRepositoryAdapter implements IProductVariantRepository {
 
     private final SpringDataProductVariantRepository springDataRepository;
     private final SpringDataProductRepository productRepository;
