@@ -15,6 +15,15 @@ public class InventoryTransaction {
     private Long id;
     private Long variantId;
     private MovementType movementType;
+    private String adjustmentSubtype;
+    private Integer quantityChange;
+    private Long unitPriceVnd;
+    private Long importId;
+    private Long saleId;
+    private String idempotencyKey;
+    private ZonedDateTime performedAt;
+
+    // Backward-compatible fields kept for existing code paths.
     private Integer quantityChanged;
     private Integer previousQuantity;
     private Integer newQuantity;

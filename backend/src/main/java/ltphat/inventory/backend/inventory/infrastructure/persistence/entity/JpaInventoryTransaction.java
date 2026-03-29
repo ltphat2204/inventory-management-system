@@ -28,6 +28,27 @@ public class JpaInventoryTransaction {
     @Column(name = "movement_type", nullable = false)
     private JpaMovementType movementType;
 
+    @Column(name = "adjustment_subtype")
+    private String adjustmentSubtype;
+
+    @Column(name = "quantity_change")
+    private Integer quantityChange;
+
+    @Column(name = "unit_price_vnd")
+    private Long unitPriceVnd;
+
+    @Column(name = "import_id")
+    private Long importId;
+
+    @Column(name = "sale_id")
+    private Long saleId;
+
+    @Column(name = "idempotency_key", unique = true, length = 64)
+    private String idempotencyKey;
+
+    @Column(name = "performed_at")
+    private ZonedDateTime performedAt;
+
     @Column(name = "quantity_changed", nullable = false)
     private Integer quantityChanged;
 
@@ -51,6 +72,8 @@ public class JpaInventoryTransaction {
 
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) createdAt = ZonedDateTime.now();
+        ZonedDateTime now = ZonedDateTime.now();
+        if (createdAt == null) createdAt = now;
+        if (performedAt == null) performedAt = now;
     }
 }
