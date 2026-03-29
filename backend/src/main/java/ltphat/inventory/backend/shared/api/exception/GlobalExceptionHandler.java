@@ -13,6 +13,7 @@ import ltphat.inventory.backend.catalog.domain.exception.VariantNotFoundExceptio
 import ltphat.inventory.backend.catalog.domain.exception.DuplicateProductCodeException;
 import ltphat.inventory.backend.catalog.domain.exception.DuplicateVariantSkuException;
 import ltphat.inventory.backend.inventory.domain.exception.InventoryNotFoundException;
+import ltphat.inventory.backend.inventory.domain.exception.InsufficientStockException;
 import ltphat.inventory.backend.shared.api.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -126,6 +127,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleInventoryNotFoundException(InventoryNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error("INVENTORY_NOT_FOUND", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInsufficientStockException(InsufficientStockException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("INSUFFICIENT_STOCK", ex.getMessage(), null));
     }
 
     @ExceptionHandler(IdempotencyConflictException.class)
