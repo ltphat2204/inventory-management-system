@@ -67,8 +67,46 @@ public class InventoryRepositoryAdapter implements IInventoryRepository {
                             .productName(projection.getProductName())
                             .currentQuantity(projection.getCurrentQuantity())
                             .lowStockThreshold(projection.getLowStockThreshold())
-                            .lowStock(quantity < threshold)
+                            .lowStock(quantity <= threshold)
                             .build();
                 });
+    }
+
+    @Override
+    public Page<InventoryOverview> findActiveLowStockOverview(Long userId, Pageable pageable) {
+        return springDataRepository.findActiveLowStockOverview(userId, pageable)
+                .map(projection -> {
+                    Integer threshold = projection.getLowStockThreshold() == null ? 0 : projection.getLowStockThreshold();
+                    Integer quantity = projection.getCurrentQuantity() == null ? 0 : projection.getCurrentQuantity();
+                    return InventoryOverview.builder()
+                            .variantId(projection.getVariantId())
+                            .variantSku(projection.getVariantSku())
+                            .productId(projection.getProductId())
+                            .productName(projection.getProductName())
+                            .currentQuantity(projection.getCurrentQuantity())
+                            .lowStockThreshold(projection.getLowStockThreshold())
+                            .lowStock(quantity <= threshold)
+                            .build();
+                });
+    }
+
+    @Override
+    public long countActiveLowStock(Long userId) {
+        return springDataRepository.countActiveLowStock(userId);
+    }
+
+    @Override
+    public long countTotalSkus() {
+        return springDataRepository.countTotalSkus();
+    }
+
+    @Override
+    public long sumTotalStockValueVnd() {
+        return springDataRepository.sumTotalStockValueVnd();
+    }
+
+    @Override
+    public boolean isVariantLowStock(Long variantId) {
+        return springDataRepository.isVariantLowStock(variantId);
     }
 }

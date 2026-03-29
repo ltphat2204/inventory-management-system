@@ -9,6 +9,8 @@ import java.time.ZonedDateTime;
 @Entity
 @Table(name = "product_variants", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"product_id", "size", "color", "design_style"})
+}, indexes = {
+    @Index(name = "idx_product_variants_low_stock_threshold", columnList = "low_stock_threshold")
 })
 @SequenceGenerator(name = "product_variants_id_seq", sequenceName = "product_variants_id_seq", allocationSize = 1)
 @Getter

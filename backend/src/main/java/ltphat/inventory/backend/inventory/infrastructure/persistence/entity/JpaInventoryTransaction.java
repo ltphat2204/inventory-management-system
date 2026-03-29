@@ -58,7 +58,7 @@ public class JpaInventoryTransaction {
     @Column(name = "new_quantity", nullable = false)
     private Integer newQuantity;
 
-    @Column(name = "reason")
+    @Column(name = "reason", nullable = false)
     private String reason;
 
     @Column(name = "reference_id")

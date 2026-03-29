@@ -19,4 +19,9 @@ public class InventoryTransactionRepositoryAdapter implements IInventoryTransact
         JpaInventoryTransaction entity = mapper.toEntity(transaction);
         return mapper.toDomain(springDataRepository.save(entity));
     }
+
+    @Override
+    public boolean existsByIdempotencyKey(String idempotencyKey) {
+        return springDataRepository.existsByIdempotencyKey(idempotencyKey);
+    }
 }

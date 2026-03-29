@@ -14,4 +14,9 @@ public interface IInventoryRepository {
     Optional<Inventory> findByVariantIdWithLock(Long variantId);
     List<Inventory> findByVariantIdIn(List<Long> variantIds);
     Page<InventoryOverview> findInventoryOverview(Boolean lowStockOnly, Long productId, Pageable pageable);
+    Page<InventoryOverview> findActiveLowStockOverview(Long userId, Pageable pageable);
+    long countActiveLowStock(Long userId);
+    long countTotalSkus();
+    long sumTotalStockValueVnd();
+    boolean isVariantLowStock(Long variantId);
 }
