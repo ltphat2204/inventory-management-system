@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SpringDataInventoryTransactionRepository extends JpaRepository<JpaInventoryTransaction, Long> {
+	boolean existsByIdempotencyKey(String idempotencyKey);
 }

@@ -7,6 +7,8 @@ import ltphat.inventory.backend.inventory.infrastructure.persistence.entity.JpaS
 import ltphat.inventory.backend.inventory.infrastructure.persistence.mapper.SaleMapper;
 import org.springframework.stereotype.Repository;
 
+import java.time.ZonedDateTime;
+
 @Repository
 @RequiredArgsConstructor
 public class SaleRepositoryAdapter implements ISaleRepository {
@@ -31,5 +33,10 @@ public class SaleRepositoryAdapter implements ISaleRepository {
     @Override
     public boolean existsBySaleNumber(String saleNumber) {
         return springDataRepository.existsBySaleNumber(saleNumber);
+    }
+
+    @Override
+    public Long sumTotalVndBySaleAtBetween(ZonedDateTime start, ZonedDateTime end) {
+        return springDataRepository.sumTotalVndBySaleAtBetween(start, end);
     }
 }

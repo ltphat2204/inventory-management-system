@@ -35,10 +35,68 @@ public interface SpringDataInventoryRepository extends JpaRepository<JpaInventor
                         JOIN ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant v ON v.id = i.variantId
                         JOIN v.product p
                         WHERE (:productId IS NULL OR p.id = :productId)
-                            AND (:lowStockOnly IS NULL OR :lowStockOnly = FALSE OR i.currentQuantity < COALESCE(v.lowStockThreshold, 0))
+                                                        AND (:lowStockOnly IS NULL OR :lowStockOnly = FALSE OR i.currentQuantity <= COALESCE(v.lowStockThreshold, 0))
                         """)
         Page<InventoryOverviewProjection> findInventoryOverview(
                         @Param("lowStockOnly") Boolean lowStockOnly,
                         @Param("productId") Long productId,
                         Pageable pageable);
+
+        @Query("""
+                        SELECT CASE WHEN COUNT(i) > 0 THEN TRUE ELSE FALSE END
+                        FROM JpaInventory i
+                        JOIN ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant v ON v.id = i.variantId
+                        WHERE i.variantId = :variantId
+                            AND i.currentQuantity <= COALESCE(v.lowStockThreshold, 0)
+                        """)
+        boolean isVariantLowStock(@Param("variantId") Long variantId);
+
+        @Query("""
+                        SELECT COUNT(i)
+                        FROM JpaInventory i
+                        """)
+        long countTotalSkus();
+
+        @Query("""
+                        SELECT COALESCE(SUM(i.totalValueVnd), 0)
+                        FROM JpaInventory i
+                        """)
+        long sumTotalStockValueVnd();
+
+        @Query("""
+                        SELECT COUNT(i)
+                        FROM JpaInventory i
+                        JOIN ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant v ON v.id = i.variantId
+                        WHERE i.currentQuantity <= COALESCE(v.lowStockThreshold, 0)
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM JpaDismissedAlert da
+                                WHERE da.userId = :userId
+                                    AND da.variantId = i.variantId
+                                    AND da.alertType = ltphat.inventory.backend.inventory.domain.model.AlertType.LOW_STOCK
+                            )
+                        """)
+        long countActiveLowStock(@Param("userId") Long userId);
+
+        @Query("""
+                        SELECT
+                                v.id as variantId,
+                                v.sku as variantSku,
+                                p.id as productId,
+                                COALESCE(p.nameVn, p.nameEn) as productName,
+                                i.currentQuantity as currentQuantity,
+                                v.lowStockThreshold as lowStockThreshold
+                        FROM JpaInventory i
+                        JOIN ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant v ON v.id = i.variantId
+                        JOIN v.product p
+                        WHERE i.currentQuantity <= COALESCE(v.lowStockThreshold, 0)
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM JpaDismissedAlert da
+                                WHERE da.userId = :userId
+                                    AND da.variantId = i.variantId
+                                    AND da.alertType = ltphat.inventory.backend.inventory.domain.model.AlertType.LOW_STOCK
+                            )
+                        """)
+        Page<InventoryOverviewProjection> findActiveLowStockOverview(@Param("userId") Long userId, Pageable pageable);
 }
