@@ -74,4 +74,11 @@ public class ProductVariantRepositoryAdapter implements IProductVariantRepositor
     public void deleteById(Long id) {
         springDataRepository.deleteById(id);
     }
+
+    @Override
+    public List<ProductVariant> findAllById(List<Long> ids) {
+        return springDataRepository.findAllById(ids).stream()
+                .map(mapper::toDomainVariant)
+                .collect(Collectors.toList());
+    }
 }

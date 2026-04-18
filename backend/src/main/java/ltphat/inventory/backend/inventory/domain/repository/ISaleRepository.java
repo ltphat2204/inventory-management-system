@@ -9,4 +9,5 @@ public interface ISaleRepository {
     boolean existsByIdempotencyKey(String idempotencyKey);
     boolean existsBySaleNumber(String saleNumber);
     Long sumTotalVndBySaleAtBetween(ZonedDateTime start, ZonedDateTime end);
+    java.util.List<Sale> findAllById(java.util.List<Long> ids);
 }
