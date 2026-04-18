@@ -12,4 +12,5 @@ public interface IProductRepository {
     Optional<Product> findByProductCode(String productCode);
     boolean existsByProductCode(String productCode);
     Page<Product> findAll(Pageable pageable, Long categoryId, Boolean isActive, String search);
+    java.util.List<Product> findAllById(java.util.List<Long> ids);
 }

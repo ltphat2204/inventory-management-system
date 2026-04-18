@@ -79,4 +79,11 @@ public class ProductRepositoryAdapter implements IProductRepository {
         }
         return domain;
     }
+
+    @Override
+    public List<Product> findAllById(List<Long> ids) {
+        return springDataRepository.findAllById(ids).stream()
+                .map(this::mapToDomainWithVariants)
+                .collect(Collectors.toList());
+    }
 }

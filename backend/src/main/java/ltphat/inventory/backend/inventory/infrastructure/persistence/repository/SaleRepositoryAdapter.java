@@ -39,4 +39,11 @@ public class SaleRepositoryAdapter implements ISaleRepository {
     public Long sumTotalVndBySaleAtBetween(ZonedDateTime start, ZonedDateTime end) {
         return springDataRepository.sumTotalVndBySaleAtBetween(start, end);
     }
+
+    @Override
+    public java.util.List<Sale> findAllById(java.util.List<Long> ids) {
+        return springDataRepository.findAllById(ids).stream()
+                .map(mapper::toDomain)
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

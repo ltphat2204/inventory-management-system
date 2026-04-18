@@ -13,4 +13,5 @@ public interface IProductVariantRepository {
     boolean existsBySku(String sku);
     List<ProductVariant> findByProductId(Long productId);
     void deleteById(Long id);
+    List<ProductVariant> findAllById(List<Long> ids);
 }
