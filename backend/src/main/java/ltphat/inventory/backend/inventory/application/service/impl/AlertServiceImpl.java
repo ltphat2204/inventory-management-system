@@ -1,6 +1,7 @@
 package ltphat.inventory.backend.inventory.application.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import ltphat.inventory.backend.inventory.application.dto.AlertDismissRequest;
 import ltphat.inventory.backend.inventory.application.dto.AlertDismissResponse;
 import ltphat.inventory.backend.inventory.application.service.IAlertService;
 import ltphat.inventory.backend.inventory.domain.exception.AlertNotFoundException;
@@ -21,6 +22,15 @@ public class AlertServiceImpl implements IAlertService {
 
     private final IInventoryRepository inventoryRepository;
     private final SpringDataDismissedAlertRepository dismissedAlertRepository;
+
+    @Override
+    @Transactional
+    public AlertDismissResponse dismissAlert(AlertDismissRequest request) {
+        return switch (request.getAlertType()) {
+            case LOW_STOCK -> dismissLowStockAlert(request.getVariantId());
+            case SLOW_MOVING -> throw new IllegalArgumentException("Slow-moving alert dismiss is not implemented yet");
+        };
+    }
 
     @Override
     @Transactional

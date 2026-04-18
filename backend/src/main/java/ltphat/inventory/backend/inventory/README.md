@@ -27,7 +27,7 @@ The Inventory module manages stock state and inventory transactions for product 
 
 - `page` (default `1`): 1-based page index.
 - `limit` (default `20`): page size.
-- `lowStockOnly` (optional): when `true`, only returns rows where `currentQuantity < lowStockThreshold`.
+- `lowStockOnly` (optional): when `true`, only returns rows where `currentQuantity <= lowStockThreshold`.
 - `productId` (optional): filter by product.
 - `sort` (optional): supports `currentQuantity`, `variantSku`, `productName`, `lowStockThreshold`; prefix with `-` for descending.
 
@@ -46,6 +46,19 @@ The Inventory module manages stock state and inventory transactions for product 
 | Method | Path | Roles | Description |
 |---|---|---|---|
 | `POST` | `/api/v1/stock-imports` | Admin, Manager | Import stock in batch with idempotency protection (201) |
+
+### Inventory Adjustments
+
+| Method | Path | Roles | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/inventory-adjustments` | Admin, Manager | Signed quantity changes with mandatory reason and idempotency (201) |
+
+### Alerts
+
+| Method | Path | Roles | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/alerts/dismiss` | Admin, Manager | Dismiss by JSON body (`alertType`, `variantId`); `LOW_STOCK` supported |
+| `POST` | `/api/v1/alerts/{id}/dismiss` | Admin, Manager | Legacy path: dismiss low-stock for variant `{id}` |
 
 ---
 
@@ -90,6 +103,10 @@ The inventory table defines explicit indexes used by the overview endpoint:
 
 - `idx_inventory_variant_id` on `inventory.variant_id`
 - `idx_inventory_current_quantity` on `inventory.current_quantity`
+
+The Catalog `product_variants` entity defines `idx_product_variants_low_stock_threshold` on `low_stock_threshold`, used together with `current_quantity` for low-stock queries and dashboard counts. Hibernate `ddl-auto=update` creates these from JPA metadata; for production, verify the same indexes exist if you manage schema with migrations.
+
+`inventory_transactions.reason` is non-nullable in JPA; adjustment rows set `adjustment_subtype` to the string form of `AdjustmentType` (DAMAGE, RETURN, INTERNAL_USE, CORRECTION).
 
 ---
 
