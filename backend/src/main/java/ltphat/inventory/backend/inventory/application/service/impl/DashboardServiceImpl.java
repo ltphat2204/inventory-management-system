@@ -38,7 +38,14 @@ public class DashboardServiceImpl implements IDashboardService {
 
         ZonedDateTime now = ZonedDateTime.now();
         ZonedDateTime startOfDay = now.toLocalDate().atStartOfDay(now.getZone());
-        long todaysSalesTotalVnd = saleRepository.sumTotalVndBySaleAtBetween(startOfDay, startOfDay.plusDays(1));
+        ZonedDateTime endOfDay = startOfDay.plusDays(1);
+        
+        long todaysSalesTotalVnd = saleRepository.sumTotalVndBySaleAtBetween(startOfDay, endOfDay);
+        long todaysSalesCount = saleRepository.countBySaleAtBetween(startOfDay, endOfDay);
+
+        ZonedDateTime slowMovingThreshold = now.minusDays(90);
+        Pageable slowMovingPageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "currentQuantity"));
+        var slowMovingItems = inventoryRepository.findSlowMovingProducts(slowMovingThreshold, slowMovingPageable);
 
         var lowStockItems = inventoryRepository.findActiveLowStockOverview(currentUserId, lowStockPageable)
                 .map(item -> InventoryOverviewResponse.builder()
@@ -57,7 +64,9 @@ public class DashboardServiceImpl implements IDashboardService {
                 .totalStockValueVnd(totalStockValueVnd)
                 .lowStockCount(lowStockCount)
                 .todaysSalesTotalVnd(todaysSalesTotalVnd)
+                .todaysSalesCount(todaysSalesCount)
                 .lowStockItems(lowStockItems)
+                .slowMovingItems(slowMovingItems)
                 .build();
     }
 }

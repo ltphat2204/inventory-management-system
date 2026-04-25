@@ -99,4 +99,20 @@ public interface SpringDataInventoryRepository extends JpaRepository<JpaInventor
                             )
                         """)
         Page<InventoryOverviewProjection> findActiveLowStockOverview(@Param("userId") Long userId, Pageable pageable);
+
+        @Query("""
+                        SELECT
+                                v.id as variantId,
+                                v.sku as variantSku,
+                                COALESCE(p.nameVn, p.nameEn) as productName,
+                                i.currentQuantity as currentQuantity,
+                                MAX(t.performedAt) as lastMovementAt
+                        FROM JpaInventory i
+                        JOIN ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant v ON v.id = i.variantId
+                        JOIN v.product p
+                        LEFT JOIN JpaInventoryTransaction t ON t.variantId = v.id
+                        GROUP BY v.id, v.sku, p.nameVn, p.nameEn, i.currentQuantity
+                        HAVING MAX(t.performedAt) IS NULL OR MAX(t.performedAt) < :thresholdDate
+                        """)
+        List<SlowMovingProjection> findSlowMovingProducts(@Param("thresholdDate") java.time.ZonedDateTime thresholdDate, Pageable pageable);
 }

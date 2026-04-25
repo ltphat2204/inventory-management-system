@@ -8,6 +8,7 @@ import ltphat.inventory.backend.inventory.infrastructure.persistence.mapper.Sale
 import org.springframework.stereotype.Repository;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -41,7 +42,12 @@ public class SaleRepositoryAdapter implements ISaleRepository {
     }
 
     @Override
-    public java.util.List<Sale> findAllById(java.util.List<Long> ids) {
+    public long countBySaleAtBetween(ZonedDateTime start, ZonedDateTime end) {
+        return springDataRepository.countBySaleAtBetween(start, end);
+    }
+
+    @Override
+    public List<Sale> findAllById(List<Long> ids) {
         return springDataRepository.findAllById(ids).stream()
                 .map(mapper::toDomain)
                 .collect(java.util.stream.Collectors.toList());

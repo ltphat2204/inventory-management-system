@@ -13,11 +13,8 @@ public interface SpringDataSaleRepository extends JpaRepository<JpaSale, Long> {
     boolean existsByIdempotencyKey(String idempotencyKey);
     boolean existsBySaleNumber(String saleNumber);
 
-        @Query("""
-                        SELECT COALESCE(SUM(s.totalVnd), 0)
-                        FROM JpaSale s
-                        WHERE s.saleAt >= :start
-                            AND s.saleAt < :end
-                        """)
-        Long sumTotalVndBySaleAtBetween(@Param("start") ZonedDateTime start, @Param("end") ZonedDateTime end);
+    @Query("SELECT COALESCE(SUM(s.totalVnd), 0) FROM JpaSale s WHERE s.saleAt >= :start AND s.saleAt < :end")
+    Long sumTotalVndBySaleAtBetween(@Param("start") ZonedDateTime start, @Param("end") ZonedDateTime end);
+
+    long countBySaleAtBetween(ZonedDateTime start, ZonedDateTime end);
 }
