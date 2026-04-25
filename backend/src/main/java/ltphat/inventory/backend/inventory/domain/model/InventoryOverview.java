@@ -17,4 +17,5 @@ public class InventoryOverview {
     private Integer currentQuantity;
     private Integer lowStockThreshold;
     private Boolean lowStock;
+    private Long priceVnd;
 }

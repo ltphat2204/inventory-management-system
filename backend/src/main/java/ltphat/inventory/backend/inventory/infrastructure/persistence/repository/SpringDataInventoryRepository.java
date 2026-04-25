@@ -30,7 +30,8 @@ public interface SpringDataInventoryRepository extends JpaRepository<JpaInventor
                                 p.id as productId,
                                 COALESCE(p.nameVn, p.nameEn) as productName,
                                 i.currentQuantity as currentQuantity,
-                                v.lowStockThreshold as lowStockThreshold
+                                v.lowStockThreshold as lowStockThreshold,
+                                v.variantPriceVnd as priceVnd
                         FROM JpaInventory i
                         JOIN ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant v ON v.id = i.variantId
                         JOIN v.product p
@@ -85,7 +86,8 @@ public interface SpringDataInventoryRepository extends JpaRepository<JpaInventor
                                 p.id as productId,
                                 COALESCE(p.nameVn, p.nameEn) as productName,
                                 i.currentQuantity as currentQuantity,
-                                v.lowStockThreshold as lowStockThreshold
+                                v.lowStockThreshold as lowStockThreshold,
+                                v.variantPriceVnd as priceVnd
                         FROM JpaInventory i
                         JOIN ltphat.inventory.backend.catalog.infrastructure.persistence.entity.JpaProductVariant v ON v.id = i.variantId
                         JOIN v.product p

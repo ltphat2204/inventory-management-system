@@ -51,4 +51,9 @@ public class RefreshTokenRepositoryAdapter implements IRefreshTokenRepository {
     public void deleteByUserId(Long userId) {
         springDataRefreshTokenRepository.deleteByUserId(userId);
     }
+
+    @Override
+    public void flush() {
+        springDataRefreshTokenRepository.flush();
+    }
 }

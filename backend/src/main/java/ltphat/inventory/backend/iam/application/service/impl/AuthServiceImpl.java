@@ -63,6 +63,7 @@ public class AuthServiceImpl implements IAuthService {
         String accessToken = jwtTokenProvider.generateAccessToken(userDetails);
 
         refreshTokenRepository.deleteByUser(user);
+        refreshTokenRepository.flush();
 
         String rawRefreshToken = UUID.randomUUID().toString();
         RefreshToken refreshToken = RefreshToken.builder()
@@ -116,6 +117,7 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         refreshTokenRepository.deleteByToken(refreshToken.getToken());
+        refreshTokenRepository.flush();
 
         User user = refreshToken.getUser();
         CustomUserDetails userDetails = new CustomUserDetails(user);

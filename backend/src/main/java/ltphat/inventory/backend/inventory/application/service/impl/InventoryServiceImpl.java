@@ -86,6 +86,7 @@ public class InventoryServiceImpl implements IInventoryService {
                 .currentQuantity(item.getCurrentQuantity())
                 .lowStockThreshold(item.getLowStockThreshold())
                 .lowStock(item.getLowStock())
+                .priceVnd(item.getPriceVnd())
                 .build();
     }
 
