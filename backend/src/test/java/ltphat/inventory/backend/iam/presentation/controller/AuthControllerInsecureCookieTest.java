@@ -29,37 +29,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = "cookie.secure=false")
 class AuthControllerInsecureCookieTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @MockitoBean
-    private IAuthService authService;
+        @MockitoBean
+        private IAuthService authService;
 
-    @MockitoBean
-    private JwtTokenProvider jwtTokenProvider;
+        @MockitoBean
+        private JwtTokenProvider jwtTokenProvider;
 
-    @MockitoBean
-    private UserDetailsService userDetailsService;
+        @MockitoBean
+        private UserDetailsService userDetailsService;
 
-    @Test
-    void login_shouldSetCookieWithoutSecureWhenCookieSecureFalse() throws Exception {
-        AuthResult result = AuthResult.builder()
-                .response(AuthResponse.builder()
-                        .accessToken("access-token")
-                        .user(UserDto.builder().id(1L).fullName("Admin").role("ADMIN").build())
-                        .build())
-                .newRefreshToken("refresh-token")
-                .build();
+        @Test
+        void login_shouldSetCookieWithoutSecureWhenCookieSecureFalse() throws Exception {
+                AuthResult result = AuthResult.builder()
+                                .response(AuthResponse.builder()
+                                                .accessToken("access-token")
+                                                .user(UserDto.builder().id(1L).fullName("Admin").role("ADMIN").build())
+                                                .build())
+                                .newRefreshToken("refresh-token")
+                                .build();
 
-        when(authService.login(any(LoginRequest.class), eq("device-1"), any())).thenReturn(result);
+                when(authService.login(any(LoginRequest.class), eq("device-1"), any())).thenReturn(result);
 
-        mockMvc.perform(post("/auth/login")
-                        .header("X-Device-Id", "device-1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"username":"admin","password":"password123"}
-                                """))
-                .andExpect(status().isOk())
-                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Secure"))));
-    }
+                mockMvc.perform(post("/auth/login")
+                                .header("X-Device-Id", "device-1")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {"username":"admin","password":"password123"}
+                                                """))
+                                .andExpect(status().isOk())
+                                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers
+                                                .not(org.hamcrest.Matchers.containsString("Secure"))));
+        }
 }

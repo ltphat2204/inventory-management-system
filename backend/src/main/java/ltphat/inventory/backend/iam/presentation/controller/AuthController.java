@@ -75,7 +75,7 @@ public class AuthController {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE, tokenValue);
         cookie.setHttpOnly(true);
         cookie.setSecure(cookieSecure);
-        cookie.setPath("/api/v1/auth");
+        cookie.setPath("/");
         cookie.setMaxAge(COOKIE_MAX_AGE_SECONDS);
         response.setHeader("Set-Cookie", buildSetCookieHeader(tokenValue, COOKIE_MAX_AGE_SECONDS));
     }
@@ -87,7 +87,7 @@ public class AuthController {
     private String buildSetCookieHeader(String value, int maxAge) {
         String secure = cookieSecure ? "; Secure" : "";
         return REFRESH_TOKEN_COOKIE + "=" + value
-                + "; Path=/api/v1/auth"
+                + "; Path=/"
                 + "; Max-Age=" + maxAge
                 + "; HttpOnly"
                 + secure

@@ -7,4 +7,5 @@ public interface InventoryOverviewProjection {
     String getProductName();
     Integer getCurrentQuantity();
     Integer getLowStockThreshold();
+    Long getPriceVnd();
 }

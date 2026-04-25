@@ -9,6 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface SpringDataUserRepository extends JpaRepository<JpaUser, Long>, JpaSpecificationExecutor<JpaUser> {
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "role")
     Optional<JpaUser> findByUsername(String username);
     boolean existsByUsername(String username);
     boolean existsByUsernameAndIdNot(String username, Long id);

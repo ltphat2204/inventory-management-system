@@ -10,4 +10,5 @@ public interface IRefreshTokenRepository {
     void deleteByUser(User user);
     void deleteByToken(String token);
     void deleteByUserId(Long userId);
+    void flush();
 }

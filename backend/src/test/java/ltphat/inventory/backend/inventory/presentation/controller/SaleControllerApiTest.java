@@ -25,57 +25,57 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(GlobalExceptionHandler.class)
 class SaleControllerApiTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @MockitoBean
-    private ISaleService saleService;
+  @MockitoBean
+  private ISaleService saleService;
 
-    @MockitoBean
-    private JwtTokenProvider jwtTokenProvider;
+  @MockitoBean
+  private JwtTokenProvider jwtTokenProvider;
 
-    @MockitoBean
-    private UserDetailsService userDetailsService;
+  @MockitoBean
+  private UserDetailsService userDetailsService;
 
-    @Test
-    @WithMockUser(roles = "CASHIER")
-    void createSale_shouldReturn400_whenInsufficientStock() throws Exception {
-        when(saleService.createSale(any()))
-                .thenThrow(new InsufficientStockException("Insufficient stock for variant ID: 101"));
+  @Test
+  @WithMockUser(roles = "CASHIER")
+  void createSale_shouldReturn400_whenInsufficientStock() throws Exception {
+    when(saleService.createSale(any()))
+        .thenThrow(new InsufficientStockException("Insufficient stock for variant ID: 101"));
 
-        mockMvc.perform(post("/sales")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "idempotencyKey": "idem-400",
-                                  "items": [
-                                    {"variantId": 101, "quantity": 2}
-                                  ]
-                                }
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.error_code").value("INSUFFICIENT_STOCK"));
-    }
+    mockMvc.perform(post("/sales")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            {
+              "idempotencyKey": "idem-400",
+              "items": [
+                {"variantId": 101, "quantity": 2}
+              ]
+            }
+            """))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.success").value(false))
+        .andExpect(jsonPath("$.error_code").value("INSUFFICIENT_STOCK"));
+  }
 
-    @Test
-    @WithMockUser(roles = "CASHIER")
-    void createSale_shouldReturn409_whenIdempotencyConflict() throws Exception {
-        when(saleService.createSale(any()))
-                .thenThrow(new IdempotencyConflictException("Duplicate idempotency key: idem-409"));
+  @Test
+  @WithMockUser(roles = "CASHIER")
+  void createSale_shouldReturn409_whenIdempotencyConflict() throws Exception {
+    when(saleService.createSale(any()))
+        .thenThrow(new IdempotencyConflictException("Duplicate idempotency key: idem-409"));
 
-        mockMvc.perform(post("/sales")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "idempotencyKey": "idem-409",
-                                  "items": [
-                                    {"variantId": 101, "quantity": 1}
-                                  ]
-                                }
-                                """))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.error_code").value("IDEMPOTENCY_CONFLICT"));
-    }
+    mockMvc.perform(post("/sales")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            {
+              "idempotencyKey": "idem-409",
+              "items": [
+                {"variantId": 101, "quantity": 1}
+              ]
+            }
+            """))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.success").value(false))
+        .andExpect(jsonPath("$.error_code").value("IDEMPOTENCY_CONFLICT"));
+  }
 }

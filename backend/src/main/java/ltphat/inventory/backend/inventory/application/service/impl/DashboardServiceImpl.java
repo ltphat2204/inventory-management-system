@@ -26,7 +26,10 @@ public class DashboardServiceImpl implements IDashboardService {
     @Override
     @Transactional(readOnly = true)
     public DashboardResponse getDashboard(int lowStockLimit) {
-        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw new org.springframework.security.authentication.InsufficientAuthenticationException("User must be authenticated to view dashboard");
+        }
         Long currentUserId = userDetails.getUser().getId();
 
         int safeLimit = Math.max(1, lowStockLimit);
