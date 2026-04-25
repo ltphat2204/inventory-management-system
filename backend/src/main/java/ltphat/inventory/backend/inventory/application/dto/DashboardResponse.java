@@ -16,5 +16,7 @@ public class DashboardResponse {
     private long totalStockValueVnd;
     private long lowStockCount;
     private long todaysSalesTotalVnd;
+    private long todaysSalesCount;
     private List<InventoryOverviewResponse> lowStockItems;
+    private List<SlowMovingItemResponse> slowMovingItems;
 }

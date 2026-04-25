@@ -109,4 +109,17 @@ public class InventoryRepositoryAdapter implements IInventoryRepository {
     public boolean isVariantLowStock(Long variantId) {
         return springDataRepository.isVariantLowStock(variantId);
     }
+
+    @Override
+    public List<ltphat.inventory.backend.inventory.application.dto.SlowMovingItemResponse> findSlowMovingProducts(java.time.ZonedDateTime thresholdDate, Pageable pageable) {
+        return springDataRepository.findSlowMovingProducts(thresholdDate, pageable).stream()
+                .map(projection -> ltphat.inventory.backend.inventory.application.dto.SlowMovingItemResponse.builder()
+                        .variantId(projection.getVariantId())
+                        .sku(projection.getVariantSku())
+                        .productName(projection.getProductName())
+                        .currentQuantity(projection.getCurrentQuantity())
+                        .lastMovementAt(projection.getLastMovementAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }

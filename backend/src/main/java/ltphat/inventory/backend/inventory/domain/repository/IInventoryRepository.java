@@ -19,4 +19,5 @@ public interface IInventoryRepository {
     long countTotalSkus();
     long sumTotalStockValueVnd();
     boolean isVariantLowStock(Long variantId);
+    List<ltphat.inventory.backend.inventory.application.dto.SlowMovingItemResponse> findSlowMovingProducts(java.time.ZonedDateTime thresholdDate, org.springframework.data.domain.Pageable pageable);
 }

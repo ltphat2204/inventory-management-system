@@ -115,3 +115,51 @@ The shared kernel provides a standardized interface for the entire application.
 - **Global exception handling**: A centralized `GlobalExceptionHandler` intercepts business and technical exceptions to return meaningful, structured error messages to the client.
 - **Security Configuration**: Centralized Spring Security setup including CORS policies and the JWT authentication entry point.
 - **Data Auditing**: Integration with Hibernate Envers to provide automated versioning and auditing for database entities.
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Java 21 JDK
+- Maven 3.9+
+- Docker & Docker Compose (optional, for database/containerization)
+
+### Local Development
+1. Clone the repository.
+2. Start the database:
+   ```bash
+   docker compose up -d db
+   ```
+3. Run the application:
+   ```bash
+   mvn spring-boot:run
+   ```
+   The API will be available at `http://localhost:8080/api/v1`.
+
+### Running Tests
+To run unit and integration tests (requires Docker for Testcontainers):
+```bash
+mvn verify
+```
+
+## Deployment
+
+### Docker Compose
+To deploy the entire stack (API + Database):
+1. Configure environment variables in `docker-compose.yml` or a `.env` file.
+2. Run:
+   ```bash
+   docker compose up -d --build
+   ```
+
+### Environment Variables
+| Variable | Description | Default |
+| --- | --- | --- |
+| `DB_URL` | JDBC URL for PostgreSQL | `jdbc:postgresql://localhost:5432/inventory_db` |
+| `DB_USERNAME` | Database username | `postgres` |
+| `DB_PASSWORD` | Database password | `postgres` |
+| `JWT_SECRET` | Secret key for JWT signing | (Random string) |
+| `JWT_ACCESS_EXPIRATION` | Access token lifetime (ms) | `900000` (15m) |
+| `JWT_REFRESH_EXPIRATION` | Refresh token lifetime (ms) | `604800000` (7d) |
+| `COOKIE_SECURE` | Secure flag for cookies | `true` |
