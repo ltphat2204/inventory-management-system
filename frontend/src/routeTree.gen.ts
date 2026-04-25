@@ -9,50 +9,319 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as AuthIndexRouteImport } from './routes/_auth.index'
+import { Route as AuthUsersRouteImport } from './routes/_auth.users'
+import { Route as AuthSalesRouteImport } from './routes/_auth.sales'
+import { Route as AuthReportsRouteImport } from './routes/_auth.reports'
+import { Route as AuthCategoriesRouteImport } from './routes/_auth.categories'
+import { Route as AuthProductsIndexRouteImport } from './routes/_auth.products.index'
+import { Route as AuthInventoryIndexRouteImport } from './routes/_auth.inventory.index'
+import { Route as AuthStockImportsCreateRouteImport } from './routes/_auth.stock-imports.create'
+import { Route as AuthProductsCreateRouteImport } from './routes/_auth.products.create'
+import { Route as AuthProductsIdRouteImport } from './routes/_auth.products.$id'
+import { Route as AuthProductsIdEditRouteImport } from './routes/_auth.products.$id.edit'
 
-const IndexRoute = IndexRouteImport.update({
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthUsersRoute = AuthUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSalesRoute = AuthSalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthReportsRoute = AuthReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthCategoriesRoute = AuthCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsIndexRoute = AuthProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthInventoryIndexRoute = AuthInventoryIndexRouteImport.update({
+  id: '/inventory/',
+  path: '/inventory/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthStockImportsCreateRoute = AuthStockImportsCreateRouteImport.update({
+  id: '/stock-imports/create',
+  path: '/stock-imports/create',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsCreateRoute = AuthProductsCreateRouteImport.update({
+  id: '/products/create',
+  path: '/products/create',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsIdRoute = AuthProductsIdRouteImport.update({
+  id: '/products/$id',
+  path: '/products/$id',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsIdEditRoute = AuthProductsIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AuthProductsIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthIndexRoute
+  '/login': typeof LoginRoute
+  '/categories': typeof AuthCategoriesRoute
+  '/reports': typeof AuthReportsRoute
+  '/sales': typeof AuthSalesRoute
+  '/users': typeof AuthUsersRoute
+  '/products/$id': typeof AuthProductsIdRouteWithChildren
+  '/products/create': typeof AuthProductsCreateRoute
+  '/stock-imports/create': typeof AuthStockImportsCreateRoute
+  '/inventory/': typeof AuthInventoryIndexRoute
+  '/products/': typeof AuthProductsIndexRoute
+  '/products/$id/edit': typeof AuthProductsIdEditRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/categories': typeof AuthCategoriesRoute
+  '/reports': typeof AuthReportsRoute
+  '/sales': typeof AuthSalesRoute
+  '/users': typeof AuthUsersRoute
+  '/': typeof AuthIndexRoute
+  '/products/$id': typeof AuthProductsIdRouteWithChildren
+  '/products/create': typeof AuthProductsCreateRoute
+  '/stock-imports/create': typeof AuthStockImportsCreateRoute
+  '/inventory': typeof AuthInventoryIndexRoute
+  '/products': typeof AuthProductsIndexRoute
+  '/products/$id/edit': typeof AuthProductsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_auth': typeof AuthRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_auth/categories': typeof AuthCategoriesRoute
+  '/_auth/reports': typeof AuthReportsRoute
+  '/_auth/sales': typeof AuthSalesRoute
+  '/_auth/users': typeof AuthUsersRoute
+  '/_auth/': typeof AuthIndexRoute
+  '/_auth/products/$id': typeof AuthProductsIdRouteWithChildren
+  '/_auth/products/create': typeof AuthProductsCreateRoute
+  '/_auth/stock-imports/create': typeof AuthStockImportsCreateRoute
+  '/_auth/inventory/': typeof AuthInventoryIndexRoute
+  '/_auth/products/': typeof AuthProductsIndexRoute
+  '/_auth/products/$id/edit': typeof AuthProductsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/categories'
+    | '/reports'
+    | '/sales'
+    | '/users'
+    | '/products/$id'
+    | '/products/create'
+    | '/stock-imports/create'
+    | '/inventory/'
+    | '/products/'
+    | '/products/$id/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/login'
+    | '/categories'
+    | '/reports'
+    | '/sales'
+    | '/users'
+    | '/'
+    | '/products/$id'
+    | '/products/create'
+    | '/stock-imports/create'
+    | '/inventory'
+    | '/products'
+    | '/products/$id/edit'
+  id:
+    | '__root__'
+    | '/_auth'
+    | '/login'
+    | '/_auth/categories'
+    | '/_auth/reports'
+    | '/_auth/sales'
+    | '/_auth/users'
+    | '/_auth/'
+    | '/_auth/products/$id'
+    | '/_auth/products/create'
+    | '/_auth/stock-imports/create'
+    | '/_auth/inventory/'
+    | '/_auth/products/'
+    | '/_auth/products/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/': {
+      id: '/_auth/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/users': {
+      id: '/_auth/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AuthUsersRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/sales': {
+      id: '/_auth/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof AuthSalesRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/reports': {
+      id: '/_auth/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthReportsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/categories': {
+      id: '/_auth/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof AuthCategoriesRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/': {
+      id: '/_auth/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof AuthProductsIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/inventory/': {
+      id: '/_auth/inventory/'
+      path: '/inventory'
+      fullPath: '/inventory/'
+      preLoaderRoute: typeof AuthInventoryIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/stock-imports/create': {
+      id: '/_auth/stock-imports/create'
+      path: '/stock-imports/create'
+      fullPath: '/stock-imports/create'
+      preLoaderRoute: typeof AuthStockImportsCreateRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/create': {
+      id: '/_auth/products/create'
+      path: '/products/create'
+      fullPath: '/products/create'
+      preLoaderRoute: typeof AuthProductsCreateRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/$id': {
+      id: '/_auth/products/$id'
+      path: '/products/$id'
+      fullPath: '/products/$id'
+      preLoaderRoute: typeof AuthProductsIdRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/$id/edit': {
+      id: '/_auth/products/$id/edit'
+      path: '/edit'
+      fullPath: '/products/$id/edit'
+      preLoaderRoute: typeof AuthProductsIdEditRouteImport
+      parentRoute: typeof AuthProductsIdRoute
     }
   }
 }
 
+interface AuthProductsIdRouteChildren {
+  AuthProductsIdEditRoute: typeof AuthProductsIdEditRoute
+}
+
+const AuthProductsIdRouteChildren: AuthProductsIdRouteChildren = {
+  AuthProductsIdEditRoute: AuthProductsIdEditRoute,
+}
+
+const AuthProductsIdRouteWithChildren = AuthProductsIdRoute._addFileChildren(
+  AuthProductsIdRouteChildren,
+)
+
+interface AuthRouteChildren {
+  AuthCategoriesRoute: typeof AuthCategoriesRoute
+  AuthReportsRoute: typeof AuthReportsRoute
+  AuthSalesRoute: typeof AuthSalesRoute
+  AuthUsersRoute: typeof AuthUsersRoute
+  AuthIndexRoute: typeof AuthIndexRoute
+  AuthProductsIdRoute: typeof AuthProductsIdRouteWithChildren
+  AuthProductsCreateRoute: typeof AuthProductsCreateRoute
+  AuthStockImportsCreateRoute: typeof AuthStockImportsCreateRoute
+  AuthInventoryIndexRoute: typeof AuthInventoryIndexRoute
+  AuthProductsIndexRoute: typeof AuthProductsIndexRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCategoriesRoute: AuthCategoriesRoute,
+  AuthReportsRoute: AuthReportsRoute,
+  AuthSalesRoute: AuthSalesRoute,
+  AuthUsersRoute: AuthUsersRoute,
+  AuthIndexRoute: AuthIndexRoute,
+  AuthProductsIdRoute: AuthProductsIdRouteWithChildren,
+  AuthProductsCreateRoute: AuthProductsCreateRoute,
+  AuthStockImportsCreateRoute: AuthStockImportsCreateRoute,
+  AuthInventoryIndexRoute: AuthInventoryIndexRoute,
+  AuthProductsIndexRoute: AuthProductsIndexRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthRoute: AuthRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
